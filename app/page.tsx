@@ -6,7 +6,6 @@ import { useUser, SignInButton, UserButton } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Menu } from 'lucide-react'
-import { UserPoints } from './UserPoints'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import useCase1 from './use-case-1.jpg'
