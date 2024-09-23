@@ -284,7 +284,7 @@ export default function Home() {
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Input
-                placeholder="Describe as '3d icon of...'"
+                placeholder="Must start with '3d icon of...'"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="max-w-xs"
