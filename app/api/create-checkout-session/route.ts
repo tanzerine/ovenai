@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { auth } from '@clerk/nextjs';
+import { auth } from "@clerk/nextjs/server";
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2024-06-20', // Use the latest available version
 });
+
+type RequestBody = {
+  points: number;
+  amount: number;
+};
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +19,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { points, amount } = await req.json();
+    const body: RequestBody = await req.json();
+    const { points, amount } = body;
+
+    if (typeof points !== 'number' || typeof amount !== 'number') {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],

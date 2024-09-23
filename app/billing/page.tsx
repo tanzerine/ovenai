@@ -8,7 +8,7 @@ import { loadStripe } from '@stripe/stripe-js'
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 export default function BillingPage() {
-  const { user } = useUser()
+  const { } = useUser()
   const [isLoading, setIsLoading] = useState(false)
 
   const handlePurchase = async (points: number, amount: number) => {
@@ -40,12 +40,12 @@ export default function BillingPage() {
           <h2 className="text-xl font-semibold mb-4">500 Points</h2>
           <p className="mb-4">Price: $5</p>
           <Button 
-            onClick={() => handlePurchase(500, 5)} 
-            disabled={isLoading}
-            className="w-full"
-          >
-            Purchase
-          </Button>
+  onClick={() => handlePurchase(500, 5)} 
+  disabled={isLoading}
+  className="w-full"
+>
+  {isLoading ? 'Processing...' : 'Purchase'}
+</Button>
         </div>
         <div className="border p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">1000 Points</h2>

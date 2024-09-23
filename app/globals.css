@@ -1,9 +1,6 @@
-@import "tailwindcss/base";
-
-@import "tailwindcss/components";
-
-@import "tailwindcss/utilities";
-
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
@@ -92,4 +89,22 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100vw * 7 / 5));  /* 7 images, each 1/5 of viewport width */
+  }
+}
+
+.animate-scroll {
+  animation: scroll 100s linear infinite;
+}
+
+/* Pause animation on hover */
+.animate-scroll:hover {
+  animation-play-state: paused;
 }

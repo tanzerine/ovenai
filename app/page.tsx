@@ -1,22 +1,23 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useUser, SignInButton, UserButton } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Menu, X } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { UserPoints } from './UserPoints'
 import { useRouter } from 'next/navigation'
-import { loadStripe } from '@stripe/stripe-js'
 import { supabase } from '../lib/supabase'
+import useCase1 from './use-case-1.jpg'
+import useCase2 from './use-case-2.jpg'
+import useCase3 from './use-case-3.jpg'
+import useCase4 from './use-case-4.jpg'
+import useCase5 from './use-case-5.jpg'
+import useCase6 from './use-case-6.jpg'
+import useCase7 from './use-case-7.jpg'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-
-type UserPublicMetadata = {
-  points?: number;
-  [key: string]: any;
-}
+/this is not important/
 
 export default function Home() {
   const { isSignedIn, user } = useUser()
@@ -24,7 +25,7 @@ export default function Home() {
   const [prompt, setPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [isRemovingBackground, setIsRemovingBackground] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [, setIsMobileMenuOpen] = useState(false)
   const [error, setError] = useState('')
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
   const [removedBgImageUrl, setRemovedBgImageUrl] = useState<string | null>(null)
@@ -34,7 +35,7 @@ export default function Home() {
   const updateUserPoints = async (newPoints: number) => {
     if (user) {
       try {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('user_points')
           .upsert({ user_id: user.id, points: newPoints })
           .select()
@@ -52,10 +53,18 @@ export default function Home() {
   useEffect(() => {
     const fetchPoints = async () => {
       if (user) {
-        await user.reload()
-        const userMetadata = user.publicMetadata as UserPublicMetadata
-        const userPoints = userMetadata?.points ?? 200
-        setPoints(userPoints)
+        const { data, error } = await supabase
+          .from('user_points')
+          .select('points')
+          .eq('user_id', user.id)
+          .single()
+  
+        if (error) {
+          console.error("Error fetching user points:", error)
+          setPoints(200) // Default to 200 if there's an error
+        } else {
+          setPoints(data?.points ?? 200)
+        }
       }
     }
     fetchPoints()
@@ -183,6 +192,16 @@ export default function Home() {
     }
   }
 
+  const useCases = [
+    { id: 1, title: "3D Icon Design", image: useCase1 },
+    { id: 2, title: "Logo Creation", image: useCase2 },
+    { id: 3, title: "Product Visualization", image: useCase3 },
+    { id: 4, title: "UI/UX Elements", image: useCase4 },
+    { id: 5, title: "Social Media Graphics", image: useCase5 },
+    { id: 6, title: "App Icons", image: useCase6 },
+    { id: 7, title: "Branding Assets", image: useCase7 },
+  ];
+
   return (
     <div className="bg-white">
       <header className="absolute inset-x-0 top-0 z-50">
@@ -207,7 +226,6 @@ export default function Home() {
             <a href="#" className="text-sm font-semibold leading-6 text-gray-900">Features</a>
             <a href="#" className="text-sm font-semibold leading-6 text-gray-900">Pricing</a>
             <a href="#" className="text-sm font-semibold leading-6 text-gray-900">About</a>
-            {isSignedIn && <UserPoints />}  {/* Display UserPoints for signed-in users */}
           </div>
           <div className="hidden lg:flex lg:flex-1 lg:justify-end items-center space-x-4">
             {isSignedIn && (
@@ -260,14 +278,14 @@ export default function Home() {
           </div>
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-              Generate 3D icons with Oven AI
+            Enrich your designs with OVEN AI
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-600">
               Create unique 3D icons for your projects with our AI-powered generator. Simply describe your icon, and watch as our AI brings it to life in stunning 3D.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Input
-                placeholder="Describe your icon..."
+                placeholder="Describe as '3d icon of...'"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="max-w-xs"
@@ -285,11 +303,13 @@ export default function Home() {
         </div>
 
         <div className="mx-auto mt-16 max-w-2xl sm:mt-24 pb-10">
-        <div className="w-full flex justify-center mb-2">
+        <div className="w-full flex justify-right mb-2">
           <Button
             onClick={toggleImage}
             disabled={!removedBgImageUrl}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="border-2 text-grey-500 bg-gray-100 border-indigo-700"
+
+
           >
             {showOriginal ? 'Show Removed Background' : 'Show Original'}
           </Button>
@@ -327,6 +347,38 @@ export default function Home() {
         </div>
       </div>
 
+
+      <div className="mt-40 mb-16">
+        <h2 className="text-3xl font-bold text-center mb-40">Use Cases</h2>
+        <div className="overflow-hidden w-full">
+          <div className="flex animate-scroll">
+            {[...useCases, ...useCases].map((useCase, index) => (
+              <div key={`${useCase.id}-${index}`} className="flex-none w-[calc(100vw/5)] px-2">
+                <div className="bg-white rounded-lg shadow-md overflow-hidden group h-full">
+                  <div className="relative aspect-[2/3] h-full">
+                    <Image 
+                      src={useCase.image}
+                      alt={useCase.title}
+                      layout="fill"
+                      objectFit="cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw"
+
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <div className="text-white text-center p-4">
+                        <h3 className="text-lg font-semibold mb-2">{useCase.title}</h3>
+                        <p className="text-sm">Create stunning {useCase.title.toLowerCase()} with our AI-powered tool.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+        
         <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]" aria-hidden="true">
           <div
             className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
