@@ -19,9 +19,7 @@ export async function POST(request: Request) {
         input: {
           prompt: prompt,
           output_format: "png",
-          width: 512,
-          height: 512,
-          num_inference_steps: 20
+          num_inference_steps: 28
         }
       }
     )
