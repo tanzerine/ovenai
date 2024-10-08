@@ -1,45 +1,65 @@
-// app/api/generate/route.ts
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import Replicate from 'replicate'
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 })
 
-export async function POST(request: Request) {
+interface GenerateInput {
+  prompt: string;
+  output_format: string;
+  width: number;
+  height: number;
+  num_inference_steps: number;
+  image?: string;
+}
+
+export async function POST(request: NextRequest) {
   try {
-    console.log('Generate API route called')
-    const { prompt } = await request.json()
+    const formData = await request.formData()
+    const prompt = formData.get('prompt') as string
+    const imageFile = formData.get('image') as File | null
+
     console.log('Received prompt:', prompt)
 
-    console.log('Generating image...')
-    const imageOutput = await replicate.run(
-      "tanzerine/3d_icon:c2cffd3b2c9004cf28cb9600940eb4c5ee7423af7d242f95f2ae0229eac62362",
-      {
-        input: {
-          prompt: prompt,
-          output_format: "png",
-          width: 512,
-          height: 512,
-          num_inference_steps: 20
-        }
-      }
-    )
-    console.log('Image generation output:', imageOutput)
-
-    if (!Array.isArray(imageOutput) || imageOutput.length === 0) {
-      throw new Error("Invalid image generation output")
+    const input: GenerateInput = {
+      prompt,
+      output_format: "png",
+      width: 1024,  // Always set to 1024
+      height: 1024, // Always set to 1024
+      num_inference_steps: 28, // Increased for better quality
     }
 
-    const originalImageUrl = imageOutput[0]
-    console.log('Generated image URL:', originalImageUrl)
+    if (imageFile) {
+      console.log('Image file received:', imageFile.name)
+      const arrayBuffer = await imageFile.arrayBuffer()
+      const base64Image = Buffer.from(arrayBuffer).toString('base64')
+      input.image = `data:${imageFile.type};base64,${base64Image}`
+    }
+
+    console.log('Creating prediction...')
+    const prediction = await replicate.predictions.create({
+      version: "c2cffd3b2c9004cf28cb9600940eb4c5ee7423af7d242f95f2ae0229eac62362",
+      input
+    })
+
+    console.log('Prediction created:', prediction)
+
+    if (!prediction || !prediction.id) {
+      throw new Error("Failed to create prediction")
+    }
+
+    console.log('Prediction ID:', prediction.id)
 
     return NextResponse.json({ 
       success: true, 
-      image_url: originalImageUrl
+      predictionId: prediction.id
     })
   } catch (error) {
     console.error("Error in generate API:", error)
-    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }, { status: 500 })
+    return NextResponse.json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'An unknown error occurred' 
+    }, { status: 500 })
   }
 }

@@ -1,3 +1,5 @@
+const defaultTheme = require('tailwindcss/defaultTheme')
+
 module.exports = {
     darkMode: ["class"],
     content: [
@@ -7,6 +9,10 @@ module.exports = {
   ],
   theme: {
   	extend: {
+		fontFamily: {
+			sans: ['Inter', ...defaultTheme.fontFamily.sans],
+			'clash-grotesk': ['"Clash Grotesk"', 'sans-serif']
+		  },
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
