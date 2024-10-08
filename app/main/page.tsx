@@ -4,7 +4,7 @@
     import { useUser } from "@clerk/nextjs"
     import { Button } from "@/components/ui/button"
     import { Input } from "@/components/ui/input"
-    import { Divide, Upload as UploadIcon } from 'lucide-react';
+    import { Upload as UploadIcon } from 'lucide-react';
     import { supabase } from '../../lib/supabase'
     import { useSearchParams } from 'next/navigation';
     import Image from 'next/image';
@@ -36,21 +36,6 @@
     const [isLoading, setIsLoading] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-
-
-
-    const sizeOptions = [
-      { value: "1024", label: "1024" },
-      { value: "512", label: "512" },
-      { value: "256", label: "256" },
-    ]
-
-    const formatOptions = [
-      { value: "PNG", label: "PNG" },
-      { value: "JPG", label: "JPG" },
-      { value: "WEBP", label: "WEBP" },
-
-    ]
 
     const fetchPoints = async () => {
       if (user) {
