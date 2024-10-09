@@ -35,22 +35,12 @@
     
     const [isLoading, setIsLoading] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 7b6c2f0466c8718b580047d8ac7ce4ea79c453bd
 
-
-    const sizeOptions = [
-      { value: "1024", label: "1024" },
-      { value: "512", label: "512" },
-      { value: "256", label: "256" },
-    ]
-
-    const formatOptions = [
-      { value: "PNG", label: "PNG" },
-      { value: "JPG", label: "JPG" },
-      { value: "WEBP", label: "WEBP" },
-
-    ]
 
     const fetchPoints = async () => {
       if (user) {
