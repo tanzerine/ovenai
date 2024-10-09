@@ -35,11 +35,6 @@
     
     const [isLoading, setIsLoading] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 7b6c2f0466c8718b580047d8ac7ce4ea79c453bd
 
 
     const fetchPoints = async () => {
