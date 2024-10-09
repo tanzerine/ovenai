@@ -17,6 +17,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <BaseNavbar />
       </div>
       <div className="relative pt-[64px]"> {/* Adjust 64px to match your navbar height */}
+        <Analytics />
         <div
           className={`absolute top-0 left-0 w-full h-[125vh] sm:h-[225vh] lg:h-[125vh] bg-[#F6F7F9] `}
         ></div>
