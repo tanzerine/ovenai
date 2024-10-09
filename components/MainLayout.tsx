@@ -2,6 +2,7 @@ import React from 'react';
 import BaseNavbar from './BaseNavbar';
 import BaseFooter from './BaseFooter';
 import styles from './MainLayout.module.css';
+import { Analytics } from "@vercel/analytics/react"
 
 interface MainLayoutProps {
   children: React.ReactNode;
