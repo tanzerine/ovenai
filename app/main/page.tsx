@@ -4,7 +4,7 @@
     import { useUser } from "@clerk/nextjs"
     import { Button } from "@/components/ui/button"
     import { Input } from "@/components/ui/input"
-    import { Divide, Upload as UploadIcon } from 'lucide-react';
+    import { Upload as UploadIcon } from 'lucide-react';
     import { supabase } from '../../lib/supabase'
     import { useSearchParams } from 'next/navigation';
     import Image from 'next/image';
