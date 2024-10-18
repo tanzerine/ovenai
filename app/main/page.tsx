@@ -8,10 +8,7 @@
     import { supabase } from '../../lib/supabase'
     import { useSearchParams } from 'next/navigation';
     import Image from 'next/image';
-
-
-
-
+    import Head from 'next/head'
 
     /this is not important/;
     /1--6/
@@ -307,7 +304,7 @@
       }
 
 
-  return (
+return (
     <>
       <Head>
         <title>3D Icon Generator | Create Custom Icons with AI</title>
@@ -320,10 +317,6 @@
         <meta name="twitter:title" content="3D Icon Generator | Create Custom Icons with AI" />
         <meta name="twitter:description" content="Generate custom 3D icons using AI. Upload images, remove backgrounds, and download high-quality icons in various formats and sizes." />
       </Head>
-      <main className="w-full min-h-screen flex flex-col items-center justify-start relative p-4 md:p-0">
-        <header className="absolute inset-x-0 top-0 z-50">
-          {/* Header content */}
-        </header>
       
         <section className="w-full max-w-[1300px] py-10 md:py-20 flex flex-col items-center justify-center relative z-10">
           <h1 className="sr-only">3D Icon Generator</h1>
@@ -334,7 +327,7 @@
                 <h2 className="font-clash-grotesk text-[#0c0c0c] text-xl md:text-[26.14px] font-medium leading-tight md:leading-[30.80px] mb-5">Input</h2>
                 <div className="w-full h-px bg-[#ebebeb] mb-5" role="separator"></div>
                 <div className="w-full px-3 pt-3 pb-[11.29px] bg-[#f7fcff] rounded-[10px] border border-[#5b8fde]/50 mb-5">
-                  <p className="text-[#5b8fde] text-s md:text-s font-medium leading-tight">Every prompt should start with '3d icon of' Be sure to include it</p>
+                  <p className="text-[#5b8fde] text-s md:text-s font-medium leading-tight">Every prompt should start with &apos;3d icon of&apos; Be sure to include it</p>
                 </div>
                 
                 <div className="mb-7">
@@ -347,8 +340,8 @@
                     onChange={(e) => setPrompt(e.target.value)}
                     aria-describedby="prompt-description"
                   />
-                  <p id="prompt-description" className="text-black/50 text-sm font-medium leading-tight mt-3">
-                    Prompt must start with '3d icon of' in order to use the model properly. Shorter prompt could enhance the quality.
+                 <p id="prompt-description" className="text-black/50 text-sm font-medium leading-tight mt-3">
+                    Prompt must start with &apos;3d icon of&apos; in order to use the model properly. Shorter prompt could enhance the quality.
                   </p>
                 </div>
 
