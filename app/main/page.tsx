@@ -524,21 +524,23 @@ return (
           </div>
         </section>
       </main>
-      <script type="application/ld+json">
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebApplication",
-          "name": "3D Icon Generator",
-          "description": "Generate custom 3D icons using AI, with options to upload images, remove backgrounds, and download in various formats and sizes.",
-          "applicationCategory": "DesignApplication",
-          "operatingSystem": "Web",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
+ <Script id="schema-org" type="application/ld+json">
+        {`
+          {
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "3D Icon Generator",
+            "description": "Generate custom 3D icons using AI, with options to upload images, remove backgrounds, and download in various formats and sizes.",
+            "applicationCategory": "DesignApplication",
+            "operatingSystem": "Web",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
           }
-        })}
-      </script>
+        `}
+      </Script>
     </>
   );
 }
