@@ -1,4 +1,4 @@
-    'use client'
+  'use client'
 
     import React, { useState, useEffect,useRef } from 'react'
     import { useUser } from "@clerk/nextjs"
@@ -8,7 +8,10 @@
     import { supabase } from '../../lib/supabase'
     import { useSearchParams } from 'next/navigation';
     import Image from 'next/image';
-    import Head from 'next/head'
+
+
+
+
 
     /this is not important/;
     /1--6/
@@ -304,147 +307,131 @@
       }
 
 
-return (
-    <>
-      <Head>
-        <title>3D Icon Generator | Create Custom Icons with AI</title>
-        <meta name="description" content="Generate custom 3D icons using AI. Upload images, remove backgrounds, and download high-quality icons in various formats and sizes." />
-        <meta name="keywords" content="3D icon, AI generator, custom icons, background removal" />
-        <meta property="og:title" content="3D Icon Generator | Create Custom Icons with AI" />
-        <meta property="og:description" content="Generate custom 3D icons using AI. Upload images, remove backgrounds, and download high-quality icons in various formats and sizes." />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="3D Icon Generator | Create Custom Icons with AI" />
-        <meta name="twitter:description" content="Generate custom 3D icons using AI. Upload images, remove backgrounds, and download high-quality icons in various formats and sizes." />
-      </Head>
+      return (
+        <div className="w-full min-h-screen flex flex-col items-center justify-start relative p-4 md:p-0">
+        <header className="absolute inset-x-0 top-0 z-50">
+          {/* Header content */}
+        </header>
       
-        <section className="w-full max-w-[1300px] py-10 md:py-20 flex flex-col items-center justify-center relative z-10">
-          <h1 className="sr-only">3D Icon Generator</h1>
+        <div className="w-full max-w-[1300px] py-10 md:py-20 flex flex-col items-center justify-center relative z-10">
           <div className="w-full bg-white rounded-[20px] flex flex-col md:flex-row border">
             {/* Input Section */}
-            <section className="flex-1 px-5 md:px-10 py-7 md:py-14 flex flex-col justify-start items-center">
+            <div className="flex-1 px-5 md:px-10 py-7 md:py-14 flex flex-col justify-start items-center">
               <div className="w-full max-w-[590px]">
-                <h2 className="font-clash-grotesk text-[#0c0c0c] text-xl md:text-[26.14px] font-medium leading-tight md:leading-[30.80px] mb-5">Input</h2>
-                <div className="w-full h-px bg-[#ebebeb] mb-5" role="separator"></div>
+                <div className="font-clash-grotesk text-[#0c0c0c] text-xl md:text-[26.14px] font-medium leading-tight md:leading-[30.80px] mb-5">Input</div>
+                <div className="w-full h-px bg-[#ebebeb] mb-5"></div>
                 <div className="w-full px-3 pt-3 pb-[11.29px] bg-[#f7fcff] rounded-[10px] border border-[#5b8fde]/50 mb-5">
                   <p className="text-[#5b8fde] text-s md:text-s font-medium leading-tight">Every prompt should start with &apos;3d icon of&apos; Be sure to include it</p>
                 </div>
                 
                 <div className="mb-7">
-                  <label htmlFor="prompt" className="text-black text-base font-medium leading-tight block mb-3">Prompt</label>
-                  <Input
-                    id="prompt"
-                    className="w-full h-10 bg-[#bbbbbb]/20 rounded-[10px] border-[#888888]/10 text-base text-slate-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder="3d icon of..."
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    aria-describedby="prompt-description"
-                  />
-                 <p id="prompt-description" className="text-black/50 text-sm font-medium leading-tight mt-3">
-                    Prompt must start with &apos;3d icon of&apos; in order to use the model properly. Shorter prompt could enhance the quality.
-                  </p>
-                </div>
+                <label htmlFor="prompt" className="text-black text-base font-medium leading-tight block mb-3">Prompt</label>
+                <Input
+                  id="prompt"
+                  className="w-full h-10 bg-[#bbbbbb]/20 rounded-[10px] border-[#888888]/10 text-base text-slate-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="3d icon of..."
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                />
+                <p className="text-black/50 text-sm font-medium leading-tight mt-3">
+                  Prompt must start with &apos;3d icon of&apos; in order to use the model properly. Shorter prompt could enhance the quality.
+                </p>
+              </div>
 
-                <div className="mb-7 w-full">
-                  <label htmlFor="image" className="text-black text-base font-medium leading-tight block mb-3">Image File</label>
-                  <div
-                    className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer relative ${
-                      isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                    }`}
-                    onDragEnter={(e) => handleDrag(e, true)}
-                    onDragOver={(e) => handleDrag(e, true)}
-                    onDragLeave={(e) => handleDrag(e, false)}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Upload image"
-                  >
-                    {imageFile ? (
-                      <>
-                        <p className="text-sm text-gray-600">{imageFile.name}</p>
-                        <button
-                          className="absolute top-2 right-2 px-2 py-1 bg-gray-300 text-white rounded-md hover:bg-red-600 text-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteImage();
-                          }}
-                          aria-label="Delete uploaded image"
-                        >
-                          Delete
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <UploadIcon className="w-8 h-8 text-gray-400 mb-2" aria-hidden="true" />
-                        <p className="text-sm text-gray-600">
-                          Drag and drop an image here, or click to select
-                        </p>
-                      </>
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    id="image"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    ref={fileInputRef}
-                    aria-hidden="true"
-                  />
-                  <p className="text-black/50 text-sm font-medium leading-tight mt-3">
-                    Upload an image file for image-to-image generation. Leave empty for text-to-image mode.
-                  </p>
-                </div>
+              <div className="mb-7 w-full">
+        <label htmlFor="image" className="text-black text-base font-medium leading-tight block mb-3">Image File</label>
+        <div
+          className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer relative ${
+            isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+          }`}
+          onDragEnter={(e) => handleDrag(e, true)}
+          onDragOver={(e) => handleDrag(e, true)}
+          onDragLeave={(e) => handleDrag(e, false)}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {imageFile ? (
+            <>
+              <p className="text-sm text-gray-600">{imageFile.name}</p>
+              <button
+                className="absolute top-2 right-2 px-2 py-1 bg-gray-300 text-white rounded-md hover:bg-red-600 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteImage();
+                }}
+              >
+                Delete
+              </button>
+            </>
+          ) : (
+            <>
+              <UploadIcon className="w-8 h-8 text-gray-400 mb-2" />
+              <p className="text-sm text-gray-600">
+                Drag and drop an image here, or click to select
+              </p>
+            </>
+          )}
+        </div>
+        <input
+          type="file"
+          id="image"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+          ref={fileInputRef}
+        />
+        <p className="text-black/50 text-sm font-medium leading-tight mt-3">
+          Upload an image file for image-to-image generation. Leave empty for text-to-image mode.
+        </p>
+      </div>
 
-                {/* Size Dropdown */}
-                <div className="mb-7">
-                  <label htmlFor="size" className="text-black text-s font-medium leading-tight block mb-3">Size</label>
-                  <div className="relative">
-                    <select
-                      id="size"
-                      value={size}
-                      onChange={(e) => setSize(e.target.value)}
-                      className="w-full h-10 bg-[#bbbbbb]/20 rounded-[10px] border-[#888888]/10 appearance-none px-3 text-gray-500 text-s border focus:ring-1 focus:ring-blue-500 shadow-sm transition-colors focus:border-blue-500 outline-none"
-                      aria-describedby="size-description"
-                    >
-                      <option value="1024">1024</option>
-                      <option value="512">512</option>
-                      <option value="256">256</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true">
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                      </svg>
-                    </div>
-                  </div>
-                  <p id="size-description" className="text-black/50 text-sm font-medium leading-tight mt-3">
-                    Size of the generated image in text-to-image mode. Only provides 256,512,1024
-                  </p>
-                </div>
+  {/* Size Dropdown */}
+  <div className="mb-7">
+        <label htmlFor="size" className="text-black text-s font-medium leading-tight block mb-3">Size</label>
+        <div className="relative">
+          <select
+            id="size"
+            value={size}
+            onChange={(e) => setSize(e.target.value)}
+            className="w-full h-10 bg-[#bbbbbb]/20 rounded-[10px] border-[#888888]/10 appearance-none px-3 text-gray-500 text-s border focus:ring-1 focus:ring-blue-500 shadow-sm transition-colors focus:border-blue-500 outline-none"
+          >
+            <option value="1024">1024</option>
+            <option value="512">512</option>
+            <option value="256">256</option>
+          </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+        </svg>
+      </div>
+    </div>
+    <p className="text-black/50 text-sm font-medium leading-tight mt-3">
+      Size of the generated image in text-to-image mode. Only provides 256,512,1024
+    </p>
+  </div>
+
 
                 {/* Format Dropdown */}
                 <div className="mb-7">
-                  <label htmlFor="format" className="text-black text-s font-medium leading-tight block mb-3">Format</label>
-                  <div className="relative">
-                    <select
-                      id="format"
-                      value={format}
-                      onChange={(e) => setFormat(e.target.value)}
-                      className="w-full h-10 bg-[#bbbbbb]/20 rounded-[10px] border-[#888888]/10 appearance-none px-3 text-gray-500 text-s border shadow-sm transition-colors focus:ring-1 focus:ring-blue-500 outline-none"
-                      aria-describedby="format-description"
-                    >
-                      <option value="PNG">PNG</option>
-                      <option value="JPG">JPG</option>
-                      <option value="WEBP">WEBP</option>
-                    </select>
+        <label htmlFor="format" className="text-black text-s font-medium leading-tight block mb-3">Format</label>
+        <div className="relative">
+          <select
+            id="format"
+            value={format}
+            onChange={(e) => setFormat(e.target.value)}
+            className="w-full h-10 bg-[#bbbbbb]/20 rounded-[10px] border-[#888888]/10 appearance-none px-3 text-gray-500 text-s border shadow-sm transition-colors focus:ring-1 focus:ring-blue-500 outline-none"
+          >
+            <option value="PNG">PNG</option>
+            <option value="JPG">JPG</option>
+            <option value="WEBP">WEBP</option>
+          </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                         <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
                       </svg>
                     </div>
                   </div>
-                  <p id="format-description" className="text-black/50 text-sm font-medium leading-tight mt-3">
+                  <p className="text-black/50 text-sm font-medium leading-tight mt-3">
                     Format of the output images.
                   </p>
                 </div>
@@ -453,94 +440,71 @@ return (
                   className="w-full md:w-[171px] h-10 bg-[#3384ff] text-s font-bold rounded-[10px] text-white"
                   onClick={generateIcon}
                   disabled={isGenerating}
-                  aria-label={isGenerating ? "Generating icon" : "Generate icon"}
                 >
-                  {isGenerating ? 'Generating...' : 'Generate Icon'}
+                  {isGenerating ? 'Generating...' : 'Run'}
                 </Button>
               </div>
-            </section>
+            </div>
 
             {/* Divider */}
-            <div className="w-full md:w-px h-px md:h-full bg-[#ebebeb] my-5 md:my-0" role="separator"></div>
+            <div className="w-full md:w-px h-px md:h-full bg-[#ebebeb] my-5 md:my-0"></div>
 
-            {/* Output Section */}
-            <section className="flex-1 p-5 md:p-[30px] md:py-14 flex flex-col justify-start items-start">
-              <div className="w-full pr-0 md:pr-5">
-                <h2 className="font-clash-grotesk text-[#0c0c0c] text-xl md:text-[26.47px] font-medium leading-tight md:leading-[30.80px] mb-5">Output</h2>
-                <div className="w-full h-px bg-[#ebebeb] mb-5" role="separator"></div>
-                {error && <p className="text-red-500 text-s font-medium mb-5" role="alert">{error}</p>}
-                {!originalImageUrl && !isLoading && (
-                  <p className="text-black/50 text-s font-medium leading-tight mb-5">Press Generate Icon to see the results!</p>
-                )}
-                <div className="w-full h-[300px] md:h-[570px] flex justify-center items-center mb-5 bg-[#BBBBBB31] relative overflow-hidden" aria-live="polite">
-                  {isLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-16 h-16 border-4 border-gray-300 border-t-white rounded-full animate-spin" role="status">
-                        <span className="sr-only">Loading...</span>
-                      </div>
-                    </div>
-                  )}
-                  {((showOriginal && originalImageUrl) || (!showOriginal && removedBgImageUrl)) && (
-                    <Image 
-                      src={showOriginal ? originalImageUrl! : removedBgImageUrl!}
-                      alt="Generated 3D Icon"
-                      fill
-                      style={{ objectFit: 'contain' }}
-                      className={`max-w-full max-h-full transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                      onLoadingComplete={() => {
-                        setIsImageLoaded(true);
-                        setIsLoading(false);
-                        setIsGenerating(false);
-                      }}
-                      onError={() => {
-                        setError('Failed to load the image. Please try again.');
-                        console.error('Image load error. URL:', showOriginal ? originalImageUrl : removedBgImageUrl);
-                        setIsLoading(false);
-                        setIsGenerating(false);
-                      }}
-                    />
-                  )}
-                </div>
-                <div className="w-full pt-[3px] flex flex-col md:flex-row justify-center items-center gap-2.5">
-                  <Button 
-                    className="w-full md:w-[280px] bg-[#333333] text-white font-bold"
-                    onClick={downloadImage}
-                    disabled={!originalImageUrl && !removedBgImageUrl}
-                    aria-label="Download generated icon"
-                  >
-                    Download
-                  </Button>
-                  <Button 
-                    className="w-full md:w-[280px] bg-[#e3e3e3] text-[#4a4a4a] font-bold"
-                    onClick={removeBackground}
-                    disabled={!originalImageUrl || isRemovingBackground}
-                    aria-label={isRemovingBackground ? "Removing background" : "Remove background"}
-                  >
-                    {isRemovingBackground ? 'Removing...' : 'Remove Background'}
-                  </Button>
-                </div>
-              </div>
-            </section>
-          </div>
-        </section>
-      </main>
- <Script id="schema-org" type="application/ld+json">
-        {`
-          {
-            "@context": "https://schema.org",
-            "@type": "WebApplication",
-            "name": "3D Icon Generator",
-            "description": "Generate custom 3D icons using AI, with options to upload images, remove backgrounds, and download in various formats and sizes.",
-            "applicationCategory": "DesignApplication",
-            "operatingSystem": "Web",
-            "offers": {
-              "@type": "Offer",
-              "price": "0",
-              "priceCurrency": "USD"
-            }
-          }
-        `}
-      </Script>
-    </>
-  );
-}
+       {/* Output Section */}
+       <div className="flex-1 p-5 md:p-[30px] md:py-14 flex flex-col justify-start items-start">
+      <div className="w-full pr-0 md:pr-5">
+        <h5 className="font-clash-grotesk text-[#0c0c0c] text-xl md:text-[26.47px] font-medium leading-tight md:leading-[30.80px] mb-5">Output</h5>
+        <div className="w-full h-px bg-[#ebebeb] mb-5"></div>
+        {error && <p className="text-red-500 text-s font-medium mb-5">{error}</p>}
+        {!originalImageUrl && !isLoading && (
+          <p className="text-black/50 text-s font-medium leading-tight mb-5">Press Run to see the results!</p>
+        )}
+        <div className="w-full h-[300px] md:h-[570px] flex justify-center items-center mb-5 bg-[#BBBBBB31] relative overflow-hidden">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 border-4 border-gray-300 border-t-white rounded-full animate-spin"></div>
+            </div>
+          )}
+          {((showOriginal && originalImageUrl) || (!showOriginal && removedBgImageUrl)) && (
+            <Image 
+              src={showOriginal ? originalImageUrl! : removedBgImageUrl!}
+              alt="Generated Icon"
+              fill
+              style={{ objectFit: 'contain' }}
+              className={`max-w-full max-h-full transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoadingComplete={() => {
+                setIsImageLoaded(true);
+                setIsLoading(false);
+                setIsGenerating(false);
+              }}
+              onError={() => {
+                setError('Failed to load the image. Please try again.');
+                console.error('Image load error. URL:', showOriginal ? originalImageUrl : removedBgImageUrl);
+                setIsLoading(false);
+                setIsGenerating(false);
+              }}
+            />
+          )}
+        </div>
+        <div className="w-full pt-[3px] flex flex-col md:flex-row justify-center items-center gap-2.5">
+          <Button 
+            className="w-full md:w-[280px] bg-[#333333] text-white font-bold"
+            onClick={downloadImage}
+            disabled={!originalImageUrl && !removedBgImageUrl}
+          >
+            Download
+          </Button>
+          <Button 
+            className="w-full md:w-[280px] bg-[#e3e3e3] text-[#4a4a4a] font-bold"
+            onClick={removeBackground}
+            disabled={!originalImageUrl || isRemovingBackground}
+          >
+            {isRemovingBackground ? 'Removing...' : 'Remove Background'}
+          </Button>
+        </div>
+      </div>
+    </div>
+    </div>
+    </div>
+</div>
+    );
+  }
