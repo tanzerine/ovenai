@@ -1,11 +1,26 @@
 'use client'
 import React, { useEffect } from 'react';
 
+// Define the gtag function type
+declare global {
+  interface Window {
+    gtag: (
+      command: 'event',
+      action: string,
+      params: {
+        page_title: string;
+        page_location: string;
+        page_path: string;
+      }
+    ) => void;
+  }
+}
+
 export default function LandingPage() {
   useEffect(() => {
     // Track page view when component mounts
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'page_view', {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'page_view', {
         page_title: 'Oven AI Landing Page',
         page_location: window.location.href,
         page_path: '/landing',
