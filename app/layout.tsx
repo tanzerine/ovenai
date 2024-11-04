@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs'
-import MainLayout from '../components/MainLayout'; // Adjust the import path as necessary
+import MainLayout from '../components/MainLayout';
 import { Analytics } from "@vercel/analytics/react"
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: "Oven AI | High-Quality 3D Icon Generator for Designers & Developers",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/path-to-your-og-image.jpg", // Replace with your actual Open Graph image path
+        url: "/path-to-your-og-image.jpg",
         width: 1200,
         height: 630,
         alt: "Oven AI 3D Icon Generator",
@@ -25,10 +26,10 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Oven AI: AI-Powered 3D Icon Generator",
     description: "Create professional, unique 3D icons for your projects. Start free, pay as you grow.",
-    images: ["/path-to-your-twitter-image.jpg"], // Replace with your actual Twitter card image path
+    images: ["/path-to-your-twitter-image.jpg"],
   },
   alternates: {
-    canonical: "https://www.yourdomain.com", // Replace with your actual canonical URL
+    canonical: "https://www.yourdomain.com",
   },
   robots: "index, follow",
 };
@@ -41,6 +42,25 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          {/* Google Analytics */}
+          <Script
+            strategy="afterInteractive"
+            src={`https://www.googletagmanager.com/gtag/js?id=G-145NLXMVCJ`}
+          />
+          <Script
+            id="google-analytics"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-145NLXMVCJ');
+              `,
+            }}
+          />
+        </head>
         <body className="antialiased">
           <MainLayout>
             <Analytics />
