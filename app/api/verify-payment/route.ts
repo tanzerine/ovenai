@@ -2,10 +2,58 @@
 import { NextResponse } from 'next/server';
 import { auth } from "@clerk/nextjs/server";
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
 });
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+async function addPoints(userId: string, pointsToAdd: number, sessionId: string) {
+  // Check if this session has already been processed
+  const { data: existingTransaction } = await supabase
+    .from('payment_transactions')
+    .select('status')
+    .eq('session_id', sessionId)
+    .eq('status', 'completed')
+    .single()
+
+  if (existingTransaction) {
+    throw new Error('Transaction already processed')
+  }
+
+  // Get current points
+  const { data: currentPointsData, error: fetchError } = await supabase
+    .from('user_points')
+    .select('points')
+    .eq('user_id', userId)
+    .single()
+
+  if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "not found"
+    throw fetchError
+  }
+
+  const currentPoints = currentPointsData?.points ?? 0
+  const newPoints = currentPoints + pointsToAdd
+
+  // Update points and mark transaction as completed in a transaction
+  const { error: updateError } = await supabase.rpc('update_points_and_transaction', {
+    p_user_id: userId,
+    p_points: newPoints,
+    p_session_id: sessionId
+  })
+
+  if (updateError) {
+    console.error("Error in points update transaction:", updateError)
+    throw updateError
+  }
+
+  return newPoints
+}
 
 export async function GET(req: Request) {
   try {
