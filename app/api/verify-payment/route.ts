@@ -34,21 +34,9 @@ export async function GET(req: Request) {
       return NextResponse.redirect(new URL('/billing?error=user-mismatch', req.url));
     }
 
-    // Check for existing transaction
-    const { data: existingTransaction } = await supabase
-      .from('payment_transactions')
-      .select('status')
-      .eq('session_id', sessionId)
-      .single();
-
-    if (existingTransaction?.status === 'completed') {
-      // Transaction already processed, redirect to success
-      return NextResponse.redirect(new URL('/main?success=true', req.url));
-    }
-
     // Update points with session ID for idempotency
     try {
-      await updateUserPoints(userId, points, sessionId);
+      await addPoints(userId, points, sessionId);
       return NextResponse.redirect(new URL('/main?success=true', req.url));
     } catch (error) {
       console.error('Error updating points:', error);
