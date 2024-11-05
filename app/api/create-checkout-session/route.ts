@@ -1,3 +1,4 @@
+// [app/api/create-checkout-session/route.ts]
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { auth } from "@clerk/nextjs/server";
@@ -17,31 +18,22 @@ type RequestBody = {
   amount: number;
 };
 
-async function updateUserPoints(userId: string, pointsToAdd: number) {
-  const { data, error: fetchError } = await supabase
-    .from('user_points')
-    .select('points')
-    .eq('user_id', userId)
-    .single()
+// Create a transaction record before processing
+async function createTransaction(userId: string, sessionId: string, points: number, amount: number) {
+  const { error } = await supabase
+    .from('payment_transactions')
+    .insert({
+      user_id: userId,
+      session_id: sessionId,
+      points: points,
+      amount: amount,
+      status: 'pending'
+    })
 
-  if (fetchError) {
-    console.error("Error fetching user points:", fetchError)
-    throw fetchError
+  if (error) {
+    console.error("Error creating transaction:", error)
+    throw error
   }
-
-  const currentPoints = data?.points ?? 0
-  const newPoints = currentPoints + pointsToAdd
-
-  const { error: updateError } = await supabase
-    .from('user_points')
-    .upsert({ user_id: userId, points: newPoints })
-
-  if (updateError) {
-    console.error("Error updating user points:", updateError)
-    throw updateError
-  }
-
-  return newPoints
 }
 
 export async function POST(req: Request) {
@@ -54,10 +46,11 @@ export async function POST(req: Request) {
     const body: RequestBody = await req.json();
     const { points, amount } = body;
 
-    if (typeof points !== 'number' || typeof amount !== 'number') {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    if (!points || !amount || points <= 0 || amount <= 0) {
+      return NextResponse.json({ error: 'Invalid points or amount' }, { status: 400 });
     }
 
+    // Create Stripe session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -73,22 +66,20 @@ export async function POST(req: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/main?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/billing`,
+      success_url: `${req.headers.get('origin')}/api/verify-payment?session_id={CHECKOUT_SESSION_ID}&points=${points}`,
+      cancel_url: `${req.headers.get('origin')}/billing?cancelled=true`,
       client_reference_id: userId,
     });
 
-    // Update user points immediately after creating the session
-    try {
-      await updateUserPoints(userId, points);
-    } catch (error) {
-      console.error('Error updating user points:', error);
-      // You might want to handle this error more gracefully
-    }
+    // Create pending transaction record
+    await createTransaction(userId, session.id, points, amount);
 
     return NextResponse.json({ sessionId: session.id });
   } catch (err) {
     console.error('Error creating checkout session:', err);
-    return NextResponse.json({ error: 'Error creating checkout session' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error creating checkout session',
+      details: err instanceof Error ? err.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
