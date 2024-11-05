@@ -36,11 +36,7 @@ async function createTransaction(userId: string, sessionId: string, points: numb
   }
 }
 
-async function updateUserPoints(userId: string, pointsToAdd: number, sessionId: string) {
-  // Start a Supabase transaction
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError) throw userError
-
+async function addPoints(userId: string, pointsToAdd: number, sessionId: string) {
   // Check if this session has already been processed
   const { data: existingTransaction } = await supabase
     .from('payment_transactions')
