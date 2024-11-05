@@ -2,48 +2,15 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { auth } from "@clerk/nextjs/server";
-import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
 });
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 type RequestBody = {
   points: number;
   amount: number;
 };
-
-async function updateUserPoints(userId: string, pointsToAdd: number) {
-  const { data, error: fetchError } = await supabase
-    .from('user_points')
-    .select('points')
-    .eq('user_id', userId)
-    .single()
-
-  if (fetchError) {
-    console.error("Error fetching user points:", fetchError)
-    throw fetchError
-  }
-
-  const currentPoints = data?.points ?? 0
-  const newPoints = currentPoints + pointsToAdd
-
-  const { error: updateError } = await supabase
-    .from('user_points')
-    .upsert({ user_id: userId, points: newPoints })
-
-  if (updateError) {
-    console.error("Error updating user points:", updateError)
-    throw updateError
-  }
-
-  return newPoints
-}
 
 export async function POST(req: Request) {
   try {
