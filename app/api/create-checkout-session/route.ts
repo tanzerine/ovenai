@@ -27,29 +27,29 @@ export async function POST(req: Request) {
     }
 
     // Store the points to be added in the metadata
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `${points} Points`,
-            },
-            unit_amount: amount * 100,
-          },
-          quantity: 1,
+const session = await stripe.checkout.sessions.create({
+  payment_method_types: ['card'],
+  line_items: [
+    {
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: `${points} Points`,
         },
-      ],
-      mode: 'payment',
-      success_url: `${req.headers.get('origin')}/main?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/billing`,
-      client_reference_id: userId,
-      metadata: {
-        points: points.toString(), // Store points in metadata for webhook
-        userId: userId // Store userId in metadata for webhook
+        unit_amount: amount * 100,
       },
-    });
+      quantity: 1,
+    },
+  ],
+  mode: 'payment',
+  success_url: `${req.headers.get('origin')}/main?success=true&session_id={CHECKOUT_SESSION_ID}`,
+  cancel_url: `${req.headers.get('origin')}/billing`,
+  client_reference_id: userId,
+  metadata: {
+    points: points.toString(),
+    userId: userId,
+  },
+});
 
     return NextResponse.json({ sessionId: session.id });
   } catch (err) {
