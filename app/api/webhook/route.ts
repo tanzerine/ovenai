@@ -1,3 +1,4 @@
+// [app/api/webhook/route.ts]
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
@@ -13,6 +14,33 @@ const supabase = createClient(
 )
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+async function updateUserPoints(userId: string, pointsToAdd: number) {
+  const { data, error: fetchError } = await supabase
+    .from('user_points')
+    .select('points')
+    .eq('user_id', userId)
+    .single()
+
+  if (fetchError) {
+    console.error("Error fetching user points:", fetchError)
+    throw fetchError
+  }
+
+  const currentPoints = data?.points ?? 0
+  const newPoints = currentPoints + pointsToAdd
+
+  const { error: updateError } = await supabase
+    .from('user_points')
+    .upsert({ user_id: userId, points: newPoints })
+
+  if (updateError) {
+    console.error("Error updating user points:", updateError)
+    throw updateError
+  }
+
+  return newPoints
+}
 
 export async function POST(req: Request) {
   try {
