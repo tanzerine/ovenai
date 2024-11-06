@@ -27,19 +27,20 @@ export default authMiddleware({
   publicRoutes: [
     '/',
     '/landing',
-    '/api/webhook',
-    '/api/stripe-webhook',
     '/framer-landing.html',
-    // Add any other public routes here
+    '/api/stripe-webhook',  // Keep in public routes
   ],
+  ignoredRoutes: [
+    '/api/stripe-webhook', // Completely bypass Clerk for webhook
+  ]
 });
 
 // Update config to include all necessary patterns
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)',
+    // Skip Next.js internals, static files, and the stripe webhook
+    '/((?!_next|api/stripe-webhook|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Run for API routes except stripe webhook
+    "/(api|trpc)/((?!stripe-webhook).)*$",
   ],
 };
