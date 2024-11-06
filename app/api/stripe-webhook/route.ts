@@ -15,29 +15,34 @@ const supabase = createClient(
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+// New Next.js 13+ route segment configuration
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(req: Request) {
-  console.log('Webhook received');
+  console.log('Stripe webhook endpoint hit!');
 
   try {
     const body = await req.text();
     const signature = headers().get('stripe-signature');
-
-    console.log('Signature:', signature?.slice(0, 10));
-
+    
+    // Enhanced logging for debugging
+    console.log('Request headers:', Object.fromEntries(headers().entries()));
+    console.log('Body preview:', body.slice(0, 100));
+    
     if (!signature) {
-      console.error('No Stripe signature found');
+      console.error('No stripe signature found');
       return NextResponse.json({ error: 'No signature' }, { status: 400 });
     }
 
     let event: Stripe.Event;
-
     try {
       event = stripe.webhooks.constructEvent(
         body,
         signature,
         webhookSecret
       );
-      console.log('Event constructed:', event.type);
+      console.log('Event type received:', event.type);
     } catch (err) {
       console.error('Webhook signature verification failed:', err);
       return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
@@ -45,16 +50,20 @@ export async function POST(req: Request) {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
+      console.log('Session data:', {
+        paymentStatus: session.payment_status,
+        metadata: session.metadata,
+        clientReferenceId: session.client_reference_id
+      });
       
       if (session.payment_status === 'paid') {
-        const userId = session.metadata?.userId;
+        const userId = session.metadata?.userId || session.client_reference_id;
         const points = parseInt(session.metadata?.points || '0');
 
-        console.log('Processing payment:', { userId, points });
+        console.log('Processing payment for:', { userId, points });
 
         if (userId && points) {
           try {
-            // Get current points
             const { data: currentData, error: fetchError } = await supabase
               .from('user_points')
               .select('points')
@@ -62,13 +71,19 @@ export async function POST(req: Request) {
               .single();
 
             if (fetchError && fetchError.code !== 'PGRST116') {
+              console.error('Error fetching current points:', fetchError);
               throw fetchError;
             }
 
             const currentPoints = currentData?.points ?? 0;
             const newPoints = currentPoints + points;
 
-            // Update points
+            console.log('Points calculation:', {
+              currentPoints,
+              pointsToAdd: points,
+              newTotal: newPoints
+            });
+
             const { error: updateError } = await supabase
               .from('user_points')
               .upsert({ 
@@ -78,18 +93,30 @@ export async function POST(req: Request) {
               });
 
             if (updateError) {
+              console.error('Error updating points:', updateError);
               throw updateError;
             }
 
             console.log('Points updated successfully:', { userId, newPoints });
-            return NextResponse.json({ success: true });
+            return NextResponse.json({ 
+              success: true,
+              userId,
+              pointsAdded: points,
+              newTotal: newPoints
+            }, { status: 200 });
           } catch (error) {
-            console.error('Error updating points:', error);
-            return NextResponse.json(
-              { error: 'Error updating points' }, 
-              { status: 500 }
-            );
+            console.error('Error updating user points:', error);
+            return NextResponse.json({ 
+              error: 'Error updating user points',
+              details: error instanceof Error ? error.message : 'Unknown error'
+            }, { status: 500 });
           }
+        } else {
+          console.error('Missing required data:', { userId, points });
+          return NextResponse.json({ 
+            error: 'Missing userId or points',
+            received: { userId, points }
+          }, { status: 400 });
         }
       }
     }
@@ -97,16 +124,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error('Webhook error:', err);
-    return NextResponse.json(
-      { error: 'Webhook handler failed' }, 
-      { status: 500 }
-    );
+    return NextResponse.json({ 
+      error: 'Webhook handler failed',
+      details: err instanceof Error ? err.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
-
-// Disable body parser for webhook
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
