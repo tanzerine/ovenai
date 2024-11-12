@@ -35,15 +35,7 @@
     
     const [isLoading, setIsLoading] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-
-    const [showPointsUpdate, setShowPointsUpdate] = useState(false)
-    const [lastPointsChange, setLastPointsChange] = useState(0)
-
-    const showPointsUpdateNotification = (change: number) => {
-      setLastPointsChange(change)
-      setShowPointsUpdate(true)
-      setTimeout(() => setShowPointsUpdate(false), 3000)
-    }
+    
 
     const inputRef = useRef<HTMLInputElement>(null)
   
@@ -199,8 +191,6 @@
         try {
           const newPoints = points - 50;
           setPoints(newPoints); // Update points locally first
-          showPointsUpdateNotification(-50) // Show points deduction
-
       
           console.log('Sending generate request with prompt:', `UNGDUNG ${prompt}`);
           console.log('Image file:', imageFile);
@@ -234,7 +224,6 @@
           setPoints(points); // Revert points if there's an error
           setIsLoading(false);
           setIsGenerating(false);
-          setShowPointsUpdate(false) // Hide points update notification on error
         }
       };
 
@@ -309,8 +298,6 @@
         try {
           const newPoints = points - 100
           setPoints(newPoints) // Update points locally first
-          showPointsUpdateNotification(-100) // Show points deduction
-
 
           const response = await fetch('/api/remove-background', {
             method: 'POST',
@@ -333,7 +320,6 @@
           console.error('Error:', err)
           setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
           setPoints(points) // Revert points if there's an error
-          setShowPointsUpdate(false) // Hide points update notification on error
         } finally {
           setIsRemovingBackground(false)
         }
