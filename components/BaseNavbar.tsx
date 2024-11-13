@@ -42,9 +42,9 @@ const BaseNavbar: React.FC = () => {
 
   return (
     <div className="h-[94px] flex-col justify-start items-start inline-flex w-full relative">
-      <div className="self-stretch px-4 sm:px-8 md:px-16 lg:px-32 xl:px-[555px] pt-6 justify-center items-center inline-flex">
-        <div className="h-[70px] relative bg-[#2d2d2d] rounded-[100px] w-full max-w-[830px] flex items-center px-4">
-          <Link href="/" className="flex items-center">
+ <div className="self-stretch px-4 sm:px-8 md:px-16 lg:px-32 xl:px-64 2xl:px-96 pt-6 justify-center items-center inline-flex">
+ <div className="h-[70px] relative bg-[#2d2d2d] rounded-[100px] w-full max-w-[1200px] flex items-center px-4">
+ <Link href="/" className="flex items-center">
           <Image 
   src="/logo.svg"
   alt="Logo"
@@ -129,7 +129,7 @@ interface MobileMenuProps {
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ isSignedIn, points, setIsMobileMenuOpen, handlePointsClick }) => (
-  <div className="lg:hidden absolute top-[94px] right-4 mt-2 p-4 bg-[#3d3d3d] rounded-lg w-64 shadow-lg">
+  <div className="md:hidden absolute top-[94px] right-4 mt-2 p-4 bg-[#3d3d3d] rounded-lg w-64 shadow-lg">
     <nav className="flex flex-col space-y-2">
       <NavLink href="#" label="Features" />
       <NavLink href="#" label="Pricing" />

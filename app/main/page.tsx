@@ -4,7 +4,7 @@
     import { useUser } from "@clerk/nextjs"
     import { Button } from "@/components/ui/button"
     import { Input } from "@/components/ui/input"
-    import { Divide, Upload as UploadIcon } from 'lucide-react';
+    import { Upload as UploadIcon } from 'lucide-react';
     import { supabase } from '../../lib/supabase'
     import { useSearchParams } from 'next/navigation';
     import Image from 'next/image';
@@ -35,12 +35,62 @@
     
     const [isLoading, setIsLoading] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-<<<<<<< HEAD
 
+    const [showPointsUpdate, setShowPointsUpdate] = useState(false)
+    const [lastPointsChange, setLastPointsChange] = useState(0)
 
-=======
->>>>>>> 7b6c2f0466c8718b580047d8ac7ce4ea79c453bd
+    const showPointsUpdateNotification = (change: number) => {
+      setLastPointsChange(change)
+      setShowPointsUpdate(true)
+      setTimeout(() => setShowPointsUpdate(false), 3000)
+    }
 
+    const inputRef = useRef<HTMLInputElement>(null)
+  
+    const handleInputFocus = () => {
+      if (!prompt.trim()) {
+        setPrompt('3d icon of ')
+        // Use setTimeout to move cursor to end of input
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.selectionStart = inputRef.current.selectionEnd = '3d icon of '.length
+          }
+        }, 0)
+      }
+    }
+
+    const PROMPT_PRESETS = [
+      {
+        label: "Human",
+        prompt: "3d icon of a scientist wearing a white robe"
+      },
+      {
+        label: "Technology",
+        prompt: "3d icon of a woman holding smartphone"
+      },
+      {
+        label: "Transport",
+        prompt: "3d icon of a green bus"
+      },
+      {
+        label: "Animal",
+        prompt: "3d icon of racoon"
+      },
+      {
+        label: "Food",
+        prompt: "3d icon of a hamburger"
+      },
+      {
+        label: "Business",
+        prompt: "3d icon of dart with arrow shot in the middle"
+      }
+    ];
+
+    const handlePresetClick = (preset: typeof PROMPT_PRESETS[0]) => {
+      setPrompt(preset.prompt);
+    };
+  
+  
 
     const fetchPoints = async () => {
       if (user) {
@@ -149,6 +199,8 @@
         try {
           const newPoints = points - 50;
           setPoints(newPoints); // Update points locally first
+          showPointsUpdateNotification(-50) // Show points deduction
+
       
           console.log('Sending generate request with prompt:', `UNGDUNG ${prompt}`);
           console.log('Image file:', imageFile);
@@ -182,6 +234,7 @@
           setPoints(points); // Revert points if there's an error
           setIsLoading(false);
           setIsGenerating(false);
+          setShowPointsUpdate(false) // Hide points update notification on error
         }
       };
 
@@ -256,6 +309,8 @@
         try {
           const newPoints = points - 100
           setPoints(newPoints) // Update points locally first
+          showPointsUpdateNotification(-100) // Show points deduction
+
 
           const response = await fetch('/api/remove-background', {
             method: 'POST',
@@ -278,6 +333,7 @@
           console.error('Error:', err)
           setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
           setPoints(points) // Revert points if there's an error
+          setShowPointsUpdate(false) // Hide points update notification on error
         } finally {
           setIsRemovingBackground(false)
         }
@@ -333,15 +389,39 @@
                 <label htmlFor="prompt" className="text-black text-base font-medium leading-tight block mb-3">Prompt</label>
                 <Input
                   id="prompt"
+                  ref={inputRef}
                   className="w-full h-10 bg-[#bbbbbb]/20 rounded-[10px] border-[#888888]/10 text-base text-slate-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="3d icon of..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
+                  onFocus={handleInputFocus}
                 />
                 <p className="text-black/50 text-sm font-medium leading-tight mt-3">
                   Prompt must start with &apos;3d icon of&apos; in order to use the model properly. Shorter prompt could enhance the quality.
                 </p>
+                </div>
+ 
+               {/* Prompt Presets Section - Now separated from input */}
+               <div className="mb-7 w-full bg-[#fafafa] p-4 rounded-lg border border-[#e0e0e0]">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-black font-medium">Quick Presets</span>
+                  <span className="text-xs text-gray-500">(Click to use)</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {PROMPT_PRESETS.map((preset, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handlePresetClick(preset)}
+                      className="px-3 py-1.5 bg-white text-[#3384ff] text-sm font-medium rounded-lg 
+                                hover:bg-[#3384ff] hover:text-white transition-colors 
+                                border border-[#3384ff]/20 shadow-sm"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+            
 
               <div className="mb-7 w-full">
         <label htmlFor="image" className="text-black text-base font-medium leading-tight block mb-3">Image File</label>
