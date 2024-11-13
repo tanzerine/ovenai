@@ -10,7 +10,7 @@ export function UserPoints() {
   useEffect(() => {
     if (user) {
       const userPoints = (user.publicMetadata as { points?: number }).points
-      setPoints(userPoints !== undefined ? userPoints : 200)
+      setPoints(userPoints !== undefined ? userPoints : 500)
     }
   }, [user])
 

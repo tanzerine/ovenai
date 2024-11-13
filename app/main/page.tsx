@@ -35,6 +35,7 @@
     
     const [isLoading, setIsLoading] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
+<<<<<<< HEAD
 
     const [showPointsUpdate, setShowPointsUpdate] = useState(false)
     const [lastPointsChange, setLastPointsChange] = useState(0)
@@ -86,6 +87,51 @@
       }
     ];
 
+=======
+    
+
+    const inputRef = useRef<HTMLInputElement>(null)
+  
+    const handleInputFocus = () => {
+      if (!prompt.trim()) {
+        setPrompt('3d icon of ')
+        // Use setTimeout to move cursor to end of input
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.selectionStart = inputRef.current.selectionEnd = '3d icon of '.length
+          }
+        }, 0)
+      }
+    }
+
+    const PROMPT_PRESETS = [
+      {
+        label: "Human",
+        prompt: "3d icon of a scientist wearing a white robe"
+      },
+      {
+        label: "Technology",
+        prompt: "3d icon of a woman holding smartphone"
+      },
+      {
+        label: "Transport",
+        prompt: "3d icon of a green bus"
+      },
+      {
+        label: "Animal",
+        prompt: "3d icon of racoon"
+      },
+      {
+        label: "Food",
+        prompt: "3d icon of a hamburger"
+      },
+      {
+        label: "Business",
+        prompt: "3d icon of dart with arrow shot in the middle"
+      }
+    ];
+
+>>>>>>> 68825ff1ba9f21e11dbb6cbc8f700c69c3f07ca8
     const handlePresetClick = (preset: typeof PROMPT_PRESETS[0]) => {
       setPrompt(preset.prompt);
     };
