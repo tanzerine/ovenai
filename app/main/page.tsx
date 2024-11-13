@@ -1,12 +1,10 @@
     'use client'
 
-    import React, { useState, useEffect,useRef } from 'react'
+    import React, { useState,useRef } from 'react'
     import { useUser } from "@clerk/nextjs"
     import { Button } from "@/components/ui/button"
     import { Input } from "@/components/ui/input"
     import { Upload as UploadIcon } from 'lucide-react';
-    import { supabase } from '../../lib/supabase'
-    import { useSearchParams } from 'next/navigation';
     import { usePointsStore } from '../store/usePointsStore'
     import Image from 'next/image';
 
@@ -19,7 +17,6 @@
 
     export default function Home() {
       const { isSignedIn, user } = useUser();
-      const searchParams = useSearchParams();
       const [prompt, setPrompt] = useState('')
       const [size, setSize] = useState<string>("1024")
       const [format, setFormat] = useState<string>("PNG")  
@@ -32,7 +29,7 @@
       const [imageFile, setImageFile] = useState<File | null>(null);
       const [isDragging, setIsDragging] = useState(false);
       const fileInputRef = useRef<HTMLInputElement>(null);
-      const { points, updatePoints, fetchPoints } = usePointsStore()
+      const { points, updatePoints } = usePointsStore()
 
     
     const [isLoading, setIsLoading] = useState(false);
