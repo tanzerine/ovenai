@@ -1,4 +1,4 @@
-// [middleware.ts]
+// middleware.ts
 import { NextResponse } from 'next/server'
 import { authMiddleware } from "@clerk/nextjs/server";
 import type { NextRequest } from 'next/server'
@@ -18,10 +18,24 @@ function handleRedirects(request: NextRequest) {
   return NextResponse.next()
 }
 
+// Handle redirects after successful authentication
+function handleAuthRedirects(auth: any, req: NextRequest) {
+  // If the user just signed in/up (check for auth callback in URL)
+  if (req.nextUrl.searchParams.has('__clerk_status')) {
+    return NextResponse.redirect(new URL('https://oveners.com/main'))
+  }
+
+  return NextResponse.next()
+}
+
 // Combine with Clerk's auth middleware
 export default authMiddleware({
   beforeAuth: (req) => {
     return handleRedirects(req)
+  },
+  afterAuth: (auth, req) => {
+    // Handle post-authentication redirects
+    return handleAuthRedirects(auth, req)
   },
   // Public routes that don't require authentication
   publicRoutes: [
@@ -29,6 +43,8 @@ export default authMiddleware({
     '/landing',
     '/framer-landing.html',
     '/api/stripe-webhook',  // Keep in public routes
+    '/sign-in',
+    '/sign-up',
   ],
   ignoredRoutes: [
     '/api/stripe-webhook', // Completely bypass Clerk for webhook
@@ -44,3 +60,5 @@ export const config = {
     "/(api|trpc)/((?!stripe-webhook).)*$",
   ],
 };
+
+/yeah ~~ !!!/
