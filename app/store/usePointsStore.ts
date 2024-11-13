@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { supabase } from '../../lib/supabase'
-import { useAuth } from '@clerk/nextjs'
 
 interface PointsStore {
   points: number | null
