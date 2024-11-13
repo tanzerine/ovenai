@@ -7,6 +7,7 @@
     import { Upload as UploadIcon } from 'lucide-react';
     import { supabase } from '../../lib/supabase'
     import { useSearchParams } from 'next/navigation';
+    import { usePointsStore } from '../store/usePointsStore'
     import Image from 'next/image';
 
 
@@ -28,66 +29,14 @@
       const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
       const [removedBgImageUrl, setRemovedBgImageUrl] = useState<string | null>(null)
       const [showOriginal, setShowOriginal] = useState(true)
-      const [points, setPoints] = useState<number | null>(null)
       const [imageFile, setImageFile] = useState<File | null>(null);
       const [isDragging, setIsDragging] = useState(false);
       const fileInputRef = useRef<HTMLInputElement>(null);
+      const { points, updatePoints, fetchPoints } = usePointsStore()
+
     
     const [isLoading, setIsLoading] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-<<<<<<< HEAD
-
-    const [showPointsUpdate, setShowPointsUpdate] = useState(false)
-    const [lastPointsChange, setLastPointsChange] = useState(0)
-
-    const showPointsUpdateNotification = (change: number) => {
-      setLastPointsChange(change)
-      setShowPointsUpdate(true)
-      setTimeout(() => setShowPointsUpdate(false), 3000)
-    }
-
-    const inputRef = useRef<HTMLInputElement>(null)
-  
-    const handleInputFocus = () => {
-      if (!prompt.trim()) {
-        setPrompt('3d icon of ')
-        // Use setTimeout to move cursor to end of input
-        setTimeout(() => {
-          if (inputRef.current) {
-            inputRef.current.selectionStart = inputRef.current.selectionEnd = '3d icon of '.length
-          }
-        }, 0)
-      }
-    }
-
-    const PROMPT_PRESETS = [
-      {
-        label: "Human",
-        prompt: "3d icon of a scientist wearing a white robe"
-      },
-      {
-        label: "Technology",
-        prompt: "3d icon of a woman holding smartphone"
-      },
-      {
-        label: "Transport",
-        prompt: "3d icon of a green bus"
-      },
-      {
-        label: "Animal",
-        prompt: "3d icon of racoon"
-      },
-      {
-        label: "Food",
-        prompt: "3d icon of a hamburger"
-      },
-      {
-        label: "Business",
-        prompt: "3d icon of dart with arrow shot in the middle"
-      }
-    ];
-
-=======
     
 
     const inputRef = useRef<HTMLInputElement>(null)
@@ -131,62 +80,9 @@
       }
     ];
 
->>>>>>> 68825ff1ba9f21e11dbb6cbc8f700c69c3f07ca8
     const handlePresetClick = (preset: typeof PROMPT_PRESETS[0]) => {
       setPrompt(preset.prompt);
     };
-  
-  
-
-    const fetchPoints = async () => {
-      if (user) {
-        const { data, error } = await supabase
-          .from('user_points')
-          .select('points')
-          .eq('user_id', user.id)
-          .single()
-  
-        if (error) {
-          console.error("Error fetching user points:", error)
-          setPoints(200) // Default to 200 if there's an error
-        } else {
-          setPoints(data?.points ?? 200)
-        }
-      }
-    }
-  
-    useEffect(() => {
-      const success = searchParams.get('success');
-      if (success === 'true') {
-        fetchPoints();
-      }
-    }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
-  
-    useEffect(() => {
-      fetchPoints()
-    }, [user])
-  
-    const updateUserPoints = async (newPoints: number) => {
-      if (user) {
-        try {
-          const { error } = await supabase
-            .from('user_points')
-            .upsert({ user_id: user.id, points: newPoints })
-            .select()
-    
-          if (error) throw error;
-    
-          setPoints(newPoints)
-        } catch (error) {
-          console.error("Error updating user points:", error)
-          setError("Failed to update points. Please try again.")
-        }
-      }
-    }
-  
-    useEffect(() => {
-      fetchPoints()
-    }, [user])
 
       const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -223,66 +119,67 @@
   };
 
 
-      const generateIcon = async () => {
-        if (!isSignedIn) {
-          setError('Please sign in to generate icons');
-          return;
-        }
-      
-        if (points === null || points < 50) {
-          setError('Not enough points. Please purchase more points.');
-          return;
-        }
-      
-        setIsGenerating(true);
-        setIsLoading(true);
-        setIsImageLoaded(false);
-        setError('');
-        setOriginalImageUrl(null);
-        setRemovedBgImageUrl(null);
-        setShowOriginal(true);
-      
-        try {
-          const newPoints = points - 50;
-          setPoints(newPoints); // Update points locally first
-          showPointsUpdateNotification(-50) // Show points deduction
-
-      
-          console.log('Sending generate request with prompt:', `UNGDUNG ${prompt}`);
-          console.log('Image file:', imageFile);
-    
-      
-          const formData = new FormData();
-          formData.append('prompt', `UNGDUNG ${prompt}`); // Add the prefix here
-          formData.append('size', size);
-          if (imageFile) {
-            formData.append('image', imageFile);
-          }
-      
-          const response = await fetch('/api/generate', {
-            method: 'POST',
-            body: formData,
-          });
-      
-          const data = await response.json();
-          console.log('Received response from generate API:', data);
-      
-          if (response.ok && data.success && data.predictionId) {
-            await updateUserPoints(newPoints);
-            console.log('Starting poll for result with predictionId:', data.predictionId);
-            await pollForResult(data.predictionId);
-          } else {
-            throw new Error(data.error || 'Failed to generate icon or get prediction ID');
-          }
-        } catch (err) {
-          console.error('Error in generateIcon:', err);
-          setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`);
-          setPoints(points); // Revert points if there's an error
-          setIsLoading(false);
-          setIsGenerating(false);
-          setShowPointsUpdate(false) // Hide points update notification on error
-        }
-      };
+  const generateIcon = async () => {
+    if (!isSignedIn) {
+      setError('Please sign in to generate icons');
+      return;
+    }
+  
+    if (!user || points === null || points < 50) {
+      setError('Not enough points. Please purchase more points.');
+      return;
+    }
+  
+    setIsGenerating(true);
+    setIsLoading(true);
+    setIsImageLoaded(false);
+    setError('');
+    setOriginalImageUrl(null);
+    setRemovedBgImageUrl(null);
+    setShowOriginal(true);
+  
+    try {
+      const newPoints = points - 50;
+      // Replace setPoints with updatePoints
+      await updatePoints(user.id, newPoints);
+  
+      console.log('Sending generate request with prompt:', `UNGDUNG ${prompt}`);
+      console.log('Image file:', imageFile);
+  
+      const formData = new FormData();
+      formData.append('prompt', `UNGDUNG ${prompt}`);
+      formData.append('size', size);
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+  
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        body: formData,
+      });
+  
+      const data = await response.json();
+      console.log('Received response from generate API:', data);
+  
+      if (response.ok && data.success && data.predictionId) {
+        // Remove this line as points are already updated:
+        // await updateUserPoints(newPoints);
+        console.log('Starting poll for result with predictionId:', data.predictionId);
+        await pollForResult(data.predictionId);
+      } else {
+        throw new Error(data.error || 'Failed to generate icon or get prediction ID');
+      }
+    } catch (err) {
+      console.error('Error in generateIcon:', err);
+      setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`);
+      // Replace setPoints with updatePoints for error recovery
+      if (user && points !== null) {
+        await updatePoints(user.id, points);
+      }
+      setIsLoading(false);
+      setIsGenerating(false);
+    }
+  };
 
       const pollForResult = async (predictionId: string) => {
         const maxAttempts = 60 // 60 * 5 seconds = 5 minutes max wait time
@@ -343,21 +240,20 @@
           setError('No image to remove background from')
           return
         }
-
-        if (points === null || points < 100) {
+      
+        if (!user || points === null || points < 100) {
           setError('Not enough points. Please purchase more points.')
           return
         }
-
+      
         setIsRemovingBackground(true)
         setError('')
-
+      
         try {
           const newPoints = points - 100
-          setPoints(newPoints) // Update points locally first
-          showPointsUpdateNotification(-100) // Show points deduction
-
-
+          // Replace setPoints with updatePoints
+          await updatePoints(user.id, newPoints);
+      
           const response = await fetch('/api/remove-background', {
             method: 'POST',
             headers: {
@@ -365,26 +261,29 @@
             },
             body: JSON.stringify({ imageUrl: originalImageUrl }),
           })
-
+      
           const data = await response.json()
-
+      
           if (response.ok && data.success) {
             setRemovedBgImageUrl(data.removed_bg_image_url)
             setShowOriginal(false)
-            await updateUserPoints(newPoints) // Update points in Clerk
+            // Remove this line as points are already updated:
+            // await updateUserPoints(newPoints)
           } else {
             throw new Error(data.error || 'Failed to remove background')
           }
         } catch (err) {
           console.error('Error:', err)
           setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
-          setPoints(points) // Revert points if there's an error
-          setShowPointsUpdate(false) // Hide points update notification on error
+          // Replace setPoints with updatePoints for error recovery
+          if (user && points !== null) {
+            await updatePoints(user.id, points);
+          }
         } finally {
           setIsRemovingBackground(false)
         }
       }
-
+      
       const downloadImage = async () => {
         if (!originalImageUrl && !removedBgImageUrl) {
           setError('No image available to download')

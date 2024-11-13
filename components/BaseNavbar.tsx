@@ -8,37 +8,25 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import Image from 'next/image';
+import { usePointsStore } from '../app/store/usePointsStore'
 
 
 const BaseNavbar: React.FC = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isSignedIn, user } = useUser();
-  const [points, setPoints] = useState<number | null>(null);
-  const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { isSignedIn, user } = useUser()
+  const router = useRouter()
+  const { points, fetchPoints } = usePointsStore()
 
   useEffect(() => {
-    const fetchPoints = async () => {
-      if (user) {
-        const { data, error } = await supabase
-          .from('user_points')
-          .select('points')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error) {
-          console.error("Error fetching user points:", error);
-          setPoints(200);
-        } else {
-          setPoints(data?.points ?? 200);
-        }
-      }
-    };
-    fetchPoints();
-  }, [user]);
+    if (user) {
+      fetchPoints(user.id)
+    }
+  }, [user, fetchPoints])
 
   const handlePointsClick = () => {
-    router.push('/billing');
-  };
+    router.push('/billing')
+  }
+
 
   return (
     <div className="h-[94px] flex-col justify-start items-start inline-flex w-full relative">
