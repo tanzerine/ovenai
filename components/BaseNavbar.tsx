@@ -6,7 +6,6 @@ import { Menu, X } from 'lucide-react';
 import { useUser, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
-import { supabase } from '../lib/supabase';
 import Image from 'next/image';
 import { usePointsStore } from '../app/store/usePointsStore'
 
