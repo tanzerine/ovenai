@@ -38,6 +38,17 @@
 
     const inputRef = useRef<HTMLInputElement>(null)
   
+// Add this helper function to get the display name
+const getUserDisplayName = () => {
+  if (!user) return '익명'; // Anonymous in Korean
+  return user.firstName || 
+         user.fullName || 
+         user.username || 
+         user.emailAddresses[0]?.emailAddress?.split('@')[0] || 
+         '익명';
+};
+
+
     const handleInputFocus = () => {
       if (!prompt.trim()) {
         setPrompt('3d icon of ')
@@ -138,7 +149,8 @@
     try {
       const newPoints = points - 50;
       // Replace setPoints with updatePoints
-      await updatePoints(user.id, newPoints);
+      const displayName = getUserDisplayName();
+      await updatePoints(displayName, newPoints);
   
       console.log('Sending generate request with prompt:', `UNGDUNG ${prompt}`);
       console.log('Image file:', imageFile);
@@ -247,9 +259,10 @@
         setError('')
       
         try {
-          const newPoints = points - 100
+          const newPoints = points - 50
           // Replace setPoints with updatePoints
-          await updatePoints(user.id, newPoints);
+          const displayName = getUserDisplayName();
+          await updatePoints(displayName, newPoints);
       
           const response = await fetch('/api/remove-background', {
             method: 'POST',
