@@ -97,7 +97,7 @@ export default function BillingPage() {
 
   const pricingPlans: PricingPlanProps[] = [
     {
-      points: 500,
+      points: 1000,
       price: 5,
       features: [
         "Access to 10+ times of generation",
@@ -109,8 +109,8 @@ export default function BillingPage() {
       ]
     },
     {
-      points: 1300,
-      price: 11,
+      points: 2600,
+      price: 12,
       features: [
         "Access to 26+ times of generation",
         "13+ times background removal",
@@ -121,8 +121,8 @@ export default function BillingPage() {
       ]
     },
     {
-      points: 5500,
-      price: 49,
+      points: 12000,
+      price: 50,
       features: [
         "Access to 110+ times of generation",
         "55+ times background removal",
