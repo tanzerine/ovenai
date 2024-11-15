@@ -5,17 +5,30 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // non-www to www redirect
       {
-        source: '/',
+        source: '/:path*',
         has: [
           {
             type: 'host',
             value: 'oveners.com',
           },
         ],
-        destination: 'https://www.oveners.com',
-        permanent: true,
+        permanent: true, // This ensures a 301 redirect
+        destination: 'https://www.oveners.com/:path*',
       },
+      // http to https redirect
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.oveners.com',
+          },
+        ],
+        permanent: true,
+        destination: 'https://www.oveners.com/:path*',
+      }
     ];
   },
   async headers() {
