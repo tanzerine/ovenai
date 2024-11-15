@@ -3,9 +3,6 @@ const nextConfig = {
   images: {
     domains: ['replicate.delivery'],
   },
-  async redirects() {
-    return [];  // 리다이렉트 규칙 제거
-  },
   async headers() {
     return [
       {

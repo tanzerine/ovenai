@@ -1,17 +1,4 @@
 {
-    "redirects": [
-      {
-        "source": "/:path(.*)",
-        "has": [
-          {
-            "type": "host",
-            "value": "oveners.com"
-          }
-        ],
-        "destination": "https://www.oveners.com/:path",
-        "statusCode": 301
-      }
-    ],
     "headers": [
       {
         "source": "/(.*)",
