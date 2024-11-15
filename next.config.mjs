@@ -3,6 +3,21 @@ const nextConfig = {
   images: {
     domains: ['replicate.delivery'],
   },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        has: [
+          {
+            type: 'host',
+            value: 'oveners.com',
+          },
+        ],
+        destination: 'https://www.oveners.com',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
@@ -14,7 +29,16 @@ const nextConfig = {
           { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
         ],
       },
-    ]
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains'
+          }
+        ],
+      },
+    ];
   },
   async rewrites() {
     return [
