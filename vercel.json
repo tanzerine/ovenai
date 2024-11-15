@@ -1,13 +1,5 @@
 {
-    
-        "redirects": [
-          {
-            "source": "/:path((?!www\\.oveners\\.com).*)",
-            "destination": "https://www.oveners.com/:path*",
-            "permanent": true
-          }
-        ]
-      ,
+    "redirects": [],
     "headers": [
       {
         "source": "/(.*)",
@@ -19,5 +11,4 @@
         ]
       }
     ]
-    
   }
