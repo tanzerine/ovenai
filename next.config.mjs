@@ -4,20 +4,7 @@ const nextConfig = {
     domains: ['replicate.delivery'],
   },
   async redirects() {
-    return [
-      // non-www to www redirect (단일 리다이렉트)
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'oveners.com',
-          },
-        ],
-        permanent: true,
-        destination: 'https://www.oveners.com/:path*',
-      }
-    ];
+    return [];  // 리다이렉트 규칙 제거
   },
   async headers() {
     return [
