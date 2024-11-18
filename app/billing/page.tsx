@@ -100,8 +100,8 @@ export default function BillingPage() {
       points: 1000,
       price: 5,
       features: [
-        "Access to 10+ times of generation",
-        "5+ times background removal",
+        "Access to 20+ times of generation",
+        "20+ times background removal",
         "Free download",
         "Image to image",
         "flux-dev model",
@@ -112,8 +112,8 @@ export default function BillingPage() {
       points: 2600,
       price: 12,
       features: [
-        "Access to 26+ times of generation",
-        "13+ times background removal",
+        "Access to 43+ times of generation",
+        "43+ times background removal",
         "Free download",
         "Image to image",
         "flux-dev model",
@@ -124,8 +124,8 @@ export default function BillingPage() {
       points: 12000,
       price: 50,
       features: [
-        "Access to 110+ times of generation",
-        "55+ times background removal",
+        "Access to 240+ times of generation",
+        "240+ times background removal",
         "Free download",
         "Image to image",
         "flux-dev model",
