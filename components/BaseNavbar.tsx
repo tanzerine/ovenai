@@ -15,12 +15,10 @@ const BaseNavbar: React.FC = () => {
   const { points, fetchPoints } = usePointsStore()
 
 useEffect(() => {
-  if (user?.emailAddresses?.[0]?.emailAddress) {
-    // Use email consistently across the application
-    fetchPoints(user.emailAddresses[0].emailAddress)
+  if (user?.primaryEmailAddress?.emailAddress) {
+    fetchPoints(user.primaryEmailAddress.emailAddress)
       .catch(error => {
         console.error('Error fetching points:', error)
-        // Don't set default points on error - let the store handle that
       })
   }
 }, [user, fetchPoints])
