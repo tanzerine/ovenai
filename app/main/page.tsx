@@ -129,6 +129,13 @@ const generateIcon = async () => {
       setError('Not enough points. Please purchase more points.');
       return;
     }
+
+    // Get primary email from Clerk user
+    const userEmail = user.primaryEmailAddress?.emailAddress;
+    if (!userEmail) {
+      setError('No email address found');
+      return;
+    }
   
     setIsGenerating(true);
     setIsLoading(true);
@@ -143,8 +150,8 @@ const generateIcon = async () => {
     const newPoints = originalPoints - 50;
 
     try {
-      // Use user.email consistently for point updates
-      await updatePoints(user.email, newPoints);
+      // Use userEmail consistently for point updates
+      await updatePoints(userEmail, newPoints);
   
       console.log('Sending generate request with prompt:', `UNGDUNG ${prompt}`);
       console.log('Image file:', imageFile);
@@ -169,16 +176,16 @@ const generateIcon = async () => {
         await pollForResult(data.predictionId);
       } else {
         // If generation fails, restore original points
-        await updatePoints(user.email, originalPoints);
+        await updatePoints(userEmail, originalPoints);
         throw new Error(data.error || 'Failed to generate icon or get prediction ID');
       }
     } catch (err) {
       console.error('Error in generateIcon:', err);
       setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`);
       
-      // Restore original points on error using user.email
+      // Restore original points on error using userEmail
       try {
-        await updatePoints(user.email, originalPoints);
+        await updatePoints(userEmail, originalPoints);
       } catch (pointsError) {
         console.error('Failed to restore points:', pointsError);
       }
@@ -187,7 +194,7 @@ const generateIcon = async () => {
       setIsGenerating(false);
     }
 };
-
+        
       const pollForResult = async (predictionId: string) => {
         const maxAttempts = 60 // 60 * 5 seconds = 5 minutes max wait time
         let attempts = 0
@@ -252,6 +259,13 @@ const generateIcon = async () => {
       setError('Not enough points. Please purchase more points.')
       return
     }
+
+    // Get primary email from Clerk user
+    const userEmail = user.primaryEmailAddress?.emailAddress;
+    if (!userEmail) {
+      setError('No email address found');
+      return;
+    }
   
     setIsRemovingBackground(true)
     setError('')
@@ -261,8 +275,8 @@ const generateIcon = async () => {
     const newPoints = originalPoints - 50;
 
     try {
-      // Use user.email consistently for point updates
-      await updatePoints(user.email, newPoints);
+      // Use userEmail consistently for point updates
+      await updatePoints(userEmail, newPoints);
   
       const response = await fetch('/api/remove-background', {
         method: 'POST',
@@ -279,16 +293,16 @@ const generateIcon = async () => {
         setShowOriginal(false)
       } else {
         // If background removal fails, restore original points
-        await updatePoints(user.email, originalPoints);
+        await updatePoints(userEmail, originalPoints);
         throw new Error(data.error || 'Failed to remove background')
       }
     } catch (err) {
       console.error('Error:', err)
       setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
       
-      // Restore original points on error using user.email
+      // Restore original points on error using userEmail
       try {
-        await updatePoints(user.email, originalPoints);
+        await updatePoints(userEmail, originalPoints);
       } catch (pointsError) {
         console.error('Failed to restore points:', pointsError);
       }
