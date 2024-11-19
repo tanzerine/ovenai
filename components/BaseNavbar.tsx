@@ -7,11 +7,13 @@ import { useUser, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import Image from 'next/image';
 import { usePointsStore } from '../app/store/usePointsStore'
+import { useRouter } from 'next/navigation';
 
 
 const BaseNavbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { isSignedIn, user } = useUser()
+    const router = useRouter() // Move this inside the component
   const { points, fetchPoints } = usePointsStore()
 
   useEffect(() => {
