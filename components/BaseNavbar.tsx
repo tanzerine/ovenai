@@ -14,14 +14,19 @@ const BaseNavbar: React.FC = () => {
   const { isSignedIn, user } = useUser()
   const { points, fetchPoints } = usePointsStore()
 
-useEffect(() => {
-  if (user?.primaryEmailAddress?.emailAddress) {
-    fetchPoints(user.primaryEmailAddress.emailAddress)
-      .catch(error => {
-        console.error('Error fetching points:', error)
-      })
+  useEffect(() => {
+    if (user?.primaryEmailAddress?.emailAddress) {
+      fetchPoints(user.primaryEmailAddress.emailAddress)
+        .catch(error => {
+          console.error('Error fetching points:', error)
+        })
+    }
+  }, [user, fetchPoints])
+
+  // Move handlePointsClick inside the component
+  const handlePointsClick = () => {
+    router.push('/billing')
   }
-}, [user, fetchPoints])
 
   return (
     <div className="h-[94px] flex-col justify-start items-start inline-flex w-full relative">
