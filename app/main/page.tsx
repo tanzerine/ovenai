@@ -191,68 +191,67 @@ const generateIcon = async () => {
       }
       // Move these to finally block instead of catch
     } finally {
-      // Only set loading states to false if we're not still polling
-      // This ensures loading continues during polling
-      if (!isGenerating) {
-        setIsLoading(false);
-        setIsGenerating(false);
-      }
     }
 };
         
-      const pollForResult = async (predictionId: string) => {
-        const maxAttempts = 60 // 60 * 5 seconds = 5 minutes max wait time
-        let attempts = 0
-      
-        const checkResult = async () => {
-          if (attempts >= maxAttempts) {
-            setError('Generation timed out. Please try again.')
-            return
-          }
-      
-          attempts++
-      
-          try {
-            console.log(`Checking prediction (Attempt ${attempts}):`, predictionId)
-      
-            if (!predictionId) {
-              throw new Error('Prediction ID is missing')
-            }
-      
-            const response = await fetch(`/api/check-prediction?id=${predictionId}`)
-            const data = await response.json()
-      
-            console.log('Received check-prediction response:', data)
-      
-            if (data.status === 'completed') {
-              if (Array.isArray(data.imageUrl) && data.imageUrl.length > 0) {
-                setOriginalImageUrl(data.imageUrl[0]);
-                console.log('Image generation completed. URL:', data.imageUrl[0]);
-              } else if (typeof data.imageUrl === 'string') {
-                setOriginalImageUrl(data.imageUrl);
-                console.log('Image generation completed. URL:', data.imageUrl);
-              } else {
-                setError('Invalid image URL format received from the API');
-                setIsLoading(false);
-                setIsGenerating(false);
-              }
-            } else if (data.status === 'failed') {
-              setError('Failed to generate icon. Please try again.')
-              setIsLoading(false);
-              setIsGenerating(false);
-            } else {
-              console.log('Generation still in progress. Checking again in 5 seconds.')
-              setTimeout(checkResult, 5000)
-            }
-          } catch (error) {
-            console.error('Error checking prediction:', error)
-            setError('Failed to check generation status. Please try again.')
-          }
-        }
-      
-        await checkResult()
+  const pollForResult = async (predictionId: string) => {
+  const maxAttempts = 60
+  let attempts = 0
+
+  const checkResult = async () => {
+    if (attempts >= maxAttempts) {
+      setError('Generation timed out. Please try again.')
+      setIsLoading(false)
+      setIsGenerating(false)
+      return
+    }
+
+    attempts++
+
+    try {
+      console.log(`Checking prediction (Attempt ${attempts}):`, predictionId)
+
+      if (!predictionId) {
+        throw new Error('Prediction ID is missing')
       }
 
+      const response = await fetch(`/api/check-prediction?id=${predictionId}`)
+      const data = await response.json()
+
+      console.log('Received check-prediction response:', data)
+
+      if (data.status === 'completed') {
+        if (Array.isArray(data.imageUrl) && data.imageUrl.length > 0) {
+          setOriginalImageUrl(data.imageUrl[0])
+          console.log('Image generation completed. URL:', data.imageUrl[0])
+          // Don't set loading states to false here - let the Image onLoadingComplete handle it
+        } else if (typeof data.imageUrl === 'string') {
+          setOriginalImageUrl(data.imageUrl)
+          console.log('Image generation completed. URL:', data.imageUrl)
+          // Don't set loading states to false here - let the Image onLoadingComplete handle it
+        } else {
+          setError('Invalid image URL format received from the API')
+          setIsLoading(false)
+          setIsGenerating(false)
+        }
+      } else if (data.status === 'failed') {
+        setError('Failed to generate icon. Please try again.')
+        setIsLoading(false)
+        setIsGenerating(false)
+      } else {
+        console.log('Generation still in progress. Checking again in 5 seconds.')
+        setTimeout(checkResult, 5000)
+      }
+    } catch (error) {
+      console.error('Error checking prediction:', error)
+      setError('Failed to check generation status. Please try again.')
+      setIsLoading(false)
+      setIsGenerating(false)
+    }
+  }
+
+  await checkResult()
+}
       
      const removeBackground = async () => {
     if (!originalImageUrl) {
