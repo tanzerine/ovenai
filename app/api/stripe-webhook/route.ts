@@ -15,7 +15,6 @@ const supabase = createClient(
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-// New Next.js 13+ route segment configuration
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -42,6 +41,7 @@ export async function POST(req: Request) {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
+      console.log('Full session data:', JSON.stringify(session, null, 2));
       
       if (session.payment_status === 'paid') {
         const userId = session.metadata?.userId;
@@ -52,19 +52,21 @@ export async function POST(req: Request) {
 
         if (userId && points) {
           try {
-            // First, get current points (with 500 as default)
+            // First, get current points
             const { data: currentData, error: fetchError } = await supabase
               .from('user_points')
               .select('points')
               .eq('user_id', userId)
               .single();
 
+            console.log('Current data from DB:', currentData);
+
             if (fetchError && fetchError.code !== 'PGRST116') {
               console.error('Error fetching current points:', fetchError);
               throw fetchError;
             }
 
-            // Use 500 as default if no existing record
+            // Use 500 as default if no existing record (matching your schema default)
             const currentPoints = currentData?.points ?? 500;
             const newPoints = currentPoints + points;
 
@@ -72,19 +74,18 @@ export async function POST(req: Request) {
               currentPoints,
               pointsToAdd: points,
               newTotal: newPoints,
-              userId,
-              displayName
+              userId
             });
 
-            // Update points using upsert, including display_name
-            const { error: updateError } = await supabase
+            // Update points using upsert - removed updated_at field
+            const { data: updateData, error: updateError } = await supabase
               .from('user_points')
               .upsert({ 
                 user_id: userId,
                 points: newPoints,
-                display_name: displayName,
-                updated_at: new Date().toISOString()
-              });
+                display_name: displayName || userId
+              })
+              .select();
 
             if (updateError) {
               console.error('Error updating points:', updateError);
@@ -94,7 +95,8 @@ export async function POST(req: Request) {
             console.log('Points updated successfully:', { 
               userId, 
               displayName,
-              newPoints 
+              newPoints,
+              updateData 
             });
             
             return NextResponse.json({ 
@@ -130,4 +132,3 @@ export async function POST(req: Request) {
     }, { status: 500 });
   }
 }
-
