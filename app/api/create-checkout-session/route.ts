@@ -26,34 +26,56 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    // Store the points to be added in the metadata
-const session = await stripe.checkout.sessions.create({
-  payment_method_types: ['card'],
-  line_items: [
-    {
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: `${points} Points`,
-        },
-        unit_amount: amount * 100,
+    // Get user's email from Clerk
+    const clerkResponse = await fetch(`https://api.clerk.dev/v1/users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
       },
-      quantity: 1,
-    },
-  ],
-  mode: 'payment',
-  success_url: `${req.headers.get('origin')}/main?success=true&session_id={CHECKOUT_SESSION_ID}`,
-  cancel_url: `${req.headers.get('origin')}/billing`,
-  client_reference_id: userId,
-  metadata: {
-    points: points.toString(),
-    userId: userId,
-  },
-});
+    });
+    
+    const clerkUser = await clerkResponse.json();
+    const userEmail = clerkUser.email_addresses[0].email_address;
+
+    if (!userEmail) {
+      return NextResponse.json({ error: 'User email not found' }, { status: 400 });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `${points} Points`,
+            },
+            unit_amount: amount * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${req.headers.get('origin')}/main?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.get('origin')}/billing`,
+      client_reference_id: userEmail, // Use email as the reference ID to match your current system
+      metadata: {
+        userId: userEmail, // Use email as userId to match your current system
+        points: points.toString(),
+      },
+    });
+
+    console.log('Created checkout session:', {
+      sessionId: session.id,
+      userId: userEmail,
+      points: points
+    });
 
     return NextResponse.json({ sessionId: session.id });
   } catch (err) {
     console.error('Error creating checkout session:', err);
-    return NextResponse.json({ error: 'Error creating checkout session' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error creating checkout session',
+      details: err instanceof Error ? err.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
