@@ -15,7 +15,6 @@ export function UserPoints() {
 
   const fetchPoints = async (userId: string) => {
     try {
-      // Try to get existing points
       const { data, error } = await supabase
         .from('user_points')
         .select('points')
@@ -66,6 +65,7 @@ export function UserPoints() {
         return null
       }
 
+      setPoints(data.points)
       return data.points
     } catch (error) {
       console.error('Error in updatePoints:', error)
@@ -77,7 +77,9 @@ export function UserPoints() {
     const loadPoints = async () => {
       if (user?.id) {
         const userPoints = await fetchPoints(user.id)
-        setPoints(userPoints)
+        if (userPoints !== null) {
+          setPoints(userPoints)
+        }
       }
     }
 
@@ -86,17 +88,13 @@ export function UserPoints() {
     }
   }, [user])
 
-  // Export functions to be used in other components
+  if (points === null) {
+    return null
+  }
+
   return {
     points,
     fetchPoints,
-    updatePoints,
-    setPoints
+    updatePoints
   }
-}
-
-// Create a custom hook for easier use in other components
-export const usePoints = () => {
-  const pointsData = UserPoints()
-  return pointsData
 }
