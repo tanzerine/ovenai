@@ -16,16 +16,16 @@ const BaseNavbar: React.FC = () => {
   const router = useRouter()
   const { points, fetchPoints } = usePointsStore()
 
-  useEffect(() => {
-    if (user) {
-      fetchPoints(user.id)
-    }
-  }, [user, fetchPoints])
-
-  const handlePointsClick = () => {
-    router.push('/billing')
+useEffect(() => {
+  if (user?.emailAddresses?.[0]?.emailAddress) {
+    // Use email consistently across the application
+    fetchPoints(user.emailAddresses[0].emailAddress)
+      .catch(error => {
+        console.error('Error fetching points:', error)
+        // Don't set default points on error - let the store handle that
+      })
   }
-
+}, [user, fetchPoints])
 
   return (
     <div className="h-[94px] flex-col justify-start items-start inline-flex w-full relative">
