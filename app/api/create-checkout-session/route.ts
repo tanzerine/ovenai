@@ -21,12 +21,12 @@ export async function POST(req: Request) {
 
     const body: RequestBody = await req.json();
     const { points, amount } = body;
-
+    
     if (typeof points !== 'number' || typeof amount !== 'number') {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    // Get user's email from Clerk
+    // Get user's email and name from Clerk
     const clerkResponse = await fetch(`https://api.clerk.dev/v1/users/${userId}`, {
       headers: {
         Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
@@ -35,10 +35,14 @@ export async function POST(req: Request) {
     
     const clerkUser = await clerkResponse.json();
     const userEmail = clerkUser.email_addresses[0].email_address;
-
+    const displayName = clerkUser.first_name || clerkUser.username || userEmail.split('@')[0];
+    
     if (!userEmail) {
       return NextResponse.json({ error: 'User email not found' }, { status: 400 });
     }
+
+    // Convert email to username format for consistency
+    const username = userEmail.split('@')[0].toLowerCase();
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -57,16 +61,18 @@ export async function POST(req: Request) {
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/main?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/billing`,
-      client_reference_id: userEmail, // Use email as the reference ID to match your current system
       metadata: {
-        userId: userEmail, // Use email as userId to match your current system
+        userId: username,
         points: points.toString(),
+        displayName: displayName,
+        userEmail: userEmail
       },
     });
 
     console.log('Created checkout session:', {
       sessionId: session.id,
-      userId: userEmail,
+      userId: username,
+      displayName: displayName,
       points: points
     });
 
