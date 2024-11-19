@@ -38,15 +38,7 @@
 
     const inputRef = useRef<HTMLInputElement>(null)
   
-// Add this helper function to get the display name
-const getUserDisplayName = () => {
-  if (!user) return '익명'; // Anonymous in Korean
-  return user.firstName || 
-         user.fullName || 
-         user.username || 
-         user.emailAddresses[0]?.emailAddress?.split('@')[0] || 
-         '익명';
-};
+
 
 
     const handleInputFocus = () => {
