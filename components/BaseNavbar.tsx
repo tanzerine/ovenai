@@ -14,7 +14,7 @@ const BaseNavbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { isSignedIn, user } = useUser()
   const router = useRouter()
-  const { user, points, fetchPoints } = usePointsStore()
+  const { points, fetchPoints } = usePointsStore()
 
   useEffect(() => {
     if (user) {
