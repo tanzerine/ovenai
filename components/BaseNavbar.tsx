@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { useUser, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { usePointsStore } from '../app/store/usePointsStore'
 
@@ -13,7 +12,6 @@ import { usePointsStore } from '../app/store/usePointsStore'
 const BaseNavbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { isSignedIn, user } = useUser()
-  const router = useRouter()
   const { points, fetchPoints } = usePointsStore()
 
 useEffect(() => {
