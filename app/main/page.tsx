@@ -127,7 +127,7 @@ const getUserDisplayName = () => {
   };
 
 
-  const generateIcon = async () => {
+const generateIcon = async () => {
     if (!isSignedIn) {
       setError('Please sign in to generate icons');
       return;
@@ -146,11 +146,13 @@ const getUserDisplayName = () => {
     setRemovedBgImageUrl(null);
     setShowOriginal(true);
   
+    // Store original points for potential recovery
+    const originalPoints = points;
+    const newPoints = originalPoints - 50;
+
     try {
-      const newPoints = points - 50;
-      // Replace setPoints with updatePoints
-      const displayName = getUserDisplayName();
-      await updatePoints(displayName, newPoints);
+      // Use user.email consistently for point updates
+      await updatePoints(user.email, newPoints);
   
       console.log('Sending generate request with prompt:', `UNGDUNG ${prompt}`);
       console.log('Image file:', imageFile);
@@ -171,24 +173,28 @@ const getUserDisplayName = () => {
       console.log('Received response from generate API:', data);
   
       if (response.ok && data.success && data.predictionId) {
-        // Remove this line as points are already updated:
-        // await updateUserPoints(newPoints);
         console.log('Starting poll for result with predictionId:', data.predictionId);
         await pollForResult(data.predictionId);
       } else {
+        // If generation fails, restore original points
+        await updatePoints(user.email, originalPoints);
         throw new Error(data.error || 'Failed to generate icon or get prediction ID');
       }
     } catch (err) {
       console.error('Error in generateIcon:', err);
       setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`);
-      // Replace setPoints with updatePoints for error recovery
-      if (user && points !== null) {
-        await updatePoints(user.id, points);
+      
+      // Restore original points on error using user.email
+      try {
+        await updatePoints(user.email, originalPoints);
+      } catch (pointsError) {
+        console.error('Failed to restore points:', pointsError);
       }
+    } finally {
       setIsLoading(false);
       setIsGenerating(false);
     }
-  };
+};
 
       const pollForResult = async (predictionId: string) => {
         const maxAttempts = 60 // 60 * 5 seconds = 5 minutes max wait time
@@ -244,55 +250,60 @@ const getUserDisplayName = () => {
       }
 
       
-      const removeBackground = async () => {
-        if (!originalImageUrl) {
-          setError('No image to remove background from')
-          return
-        }
-      
-        if (!user || points === null || points < 100) {
-          setError('Not enough points. Please purchase more points.')
-          return
-        }
-      
-        setIsRemovingBackground(true)
-        setError('')
-      
-        try {
-          const newPoints = points - 50
-          // Replace setPoints with updatePoints
-          const displayName = getUserDisplayName();
-          await updatePoints(displayName, newPoints);
-      
-          const response = await fetch('/api/remove-background', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ imageUrl: originalImageUrl }),
-          })
-      
-          const data = await response.json()
-      
-          if (response.ok && data.success) {
-            setRemovedBgImageUrl(data.removed_bg_image_url)
-            setShowOriginal(false)
-            // Remove this line as points are already updated:
-            // await updateUserPoints(newPoints)
-          } else {
-            throw new Error(data.error || 'Failed to remove background')
-          }
-        } catch (err) {
-          console.error('Error:', err)
-          setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
-          // Replace setPoints with updatePoints for error recovery
-          if (user && points !== null) {
-            await updatePoints(user.id, points);
-          }
-        } finally {
-          setIsRemovingBackground(false)
-        }
+     const removeBackground = async () => {
+    if (!originalImageUrl) {
+      setError('No image to remove background from')
+      return
+    }
+  
+    if (!user || points === null || points < 100) {
+      setError('Not enough points. Please purchase more points.')
+      return
+    }
+  
+    setIsRemovingBackground(true)
+    setError('')
+  
+    // Store original points for potential recovery
+    const originalPoints = points;
+    const newPoints = originalPoints - 50;
+
+    try {
+      // Use user.email consistently for point updates
+      await updatePoints(user.email, newPoints);
+  
+      const response = await fetch('/api/remove-background', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageUrl: originalImageUrl }),
+      })
+  
+      const data = await response.json()
+  
+      if (response.ok && data.success) {
+        setRemovedBgImageUrl(data.removed_bg_image_url)
+        setShowOriginal(false)
+      } else {
+        // If background removal fails, restore original points
+        await updatePoints(user.email, originalPoints);
+        throw new Error(data.error || 'Failed to remove background')
       }
+    } catch (err) {
+      console.error('Error:', err)
+      setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
+      
+      // Restore original points on error using user.email
+      try {
+        await updatePoints(user.email, originalPoints);
+      } catch (pointsError) {
+        console.error('Failed to restore points:', pointsError);
+      }
+    } finally {
+      setIsRemovingBackground(false)
+    }
+}
       
       const downloadImage = async () => {
         if (!originalImageUrl && !removedBgImageUrl) {
