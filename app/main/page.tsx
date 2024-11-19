@@ -189,9 +189,14 @@ const generateIcon = async () => {
       } catch (pointsError) {
         console.error('Failed to restore points:', pointsError);
       }
+      // Move these to finally block instead of catch
     } finally {
-      setIsLoading(false);
-      setIsGenerating(false);
+      // Only set loading states to false if we're not still polling
+      // This ensures loading continues during polling
+      if (!isGenerating) {
+        setIsLoading(false);
+        setIsGenerating(false);
+      }
     }
 };
         
