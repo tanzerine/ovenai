@@ -1,72 +1,81 @@
+// usePointsStore.ts
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import { supabase } from '../../lib/supabase'
 
 interface PointsStore {
   points: number | null
+  isInitialized: boolean
   setPoints: (points: number | null) => void
   updatePoints: (userEmail: string, newPoints: number) => Promise<void>
   fetchPoints: (userEmail: string) => Promise<void>
   getUsernameFromEmail: (email: string) => string
 }
 
-export const usePointsStore = create<PointsStore>((set) => ({
-  points: null,
-  setPoints: (points) => set({ points }),
-  
-  getUsernameFromEmail: (email: string) => {
-    return email.split('@')[0].toLowerCase()
-  },
-
-  updatePoints: async (userEmail: string, newPoints: number) => {
-    try {
-      const username = usePointsStore.getState().getUsernameFromEmail(userEmail)
+export const usePointsStore = create<PointsStore>()(
+  persist(
+    (set, get) => ({
+      points: null,
+      isInitialized: false,
+      setPoints: (points) => set({ points }),
       
-      const { error } = await supabase
-        .from('user_points')
-        .update({ points: newPoints })
-        .eq('user_id', username)
+      getUsernameFromEmail: (email: string) => {
+        return email.split('@')[0].toLowerCase()
+      },
 
-      if (error) throw error
-      
-      set({ points: newPoints })
-    } catch (error) {
-      console.error("Error updating points:", error)
-      throw error
-    }
-  },
-
-  fetchPoints: async (userEmail: string) => {
-    try {
-      const username = usePointsStore.getState().getUsernameFromEmail(userEmail)
-      
-      const { data, error } = await supabase
-        .from('user_points')
-        .select('points')
-        .eq('user_id', username)
-        .single()
-
-      if (error) {
-        // If no record found, create a new one with 500 points
-        if (error.code === 'PGRST116') {
-          const { data: newData, error: insertError } = await supabase
+      updatePoints: async (userEmail: string, newPoints: number) => {
+        try {
+          const username = get().getUsernameFromEmail(userEmail)
+          
+          const { error } = await supabase
             .from('user_points')
-            .insert([{ user_id: username, points: 500 }])
+            .upsert({ user_id: username, points: newPoints })
+            .select()
+
+          if (error) throw error
+          
+          set({ points: newPoints })
+        } catch (error) {
+          console.error("Error updating points:", error)
+          throw error
+        }
+      },
+
+      fetchPoints: async (userEmail: string) => {
+        try {
+          // If points are already initialized, don't fetch again
+          if (get().isInitialized && get().points !== null) {
+            return
+          }
+
+          const username = get().getUsernameFromEmail(userEmail)
+          
+          const { data, error } = await supabase
+            .from('user_points')
             .select('points')
+            .eq('user_id', username)
             .single()
 
-          if (insertError) throw insertError
-          set({ points: newData.points })
-          return
+          if (error) {
+            // Only set default points if user doesn't exist in database
+            if (error.code === 'PGRST116') {
+              await get().updatePoints(userEmail, 500) // Set initial points for new user
+              set({ points: 500, isInitialized: true })
+            } else {
+              throw error
+            }
+          } else {
+            set({ points: data.points, isInitialized: true })
+          }
+        } catch (error) {
+          console.error("Error fetching points:", error)
+          // Don't set default points on error, maintain current state
         }
-        throw error
-      }
-      
-      // If data exists, use the points value
-      set({ points: data.points })
-    } catch (error) {
-      console.error("Error fetching points:", error)
-      // Don't set default points on error
-      throw error
+      },
+    }),
+    {
+      name: 'points-storage',
+      partialize: (state) => ({ points: state.points, isInitialized: state.isInitialized })
     }
-  },
-}))
+  )
+)
