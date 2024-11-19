@@ -35,7 +35,7 @@ export const usePointsStore = create<PointsStore>((set) => ({
     }
   },
 
-  fetchPoints: async (userEmail: string) => {
+ fetchPoints: async (userEmail: string) => {
     try {
       const username = usePointsStore.getState().getUsernameFromEmail(userEmail)
       
@@ -47,10 +47,10 @@ export const usePointsStore = create<PointsStore>((set) => ({
 
       if (error) throw error
       
-      set({ points: data?.points ?? 500 })
+      set({ points: data?.points ?? 500 }) // <-- Potential issue here
     } catch (error) {
       console.error("Error fetching points:", error)
-      set({ points: 500 })
+      set({ points: 500 })  // <-- And here
     }
   },
 }))
