@@ -26,10 +26,6 @@ export async function POST(req: Request) {
     const body = await req.text();
     const signature = headers().get('stripe-signature');
     
-    // Enhanced logging for debugging
-    console.log('Request headers:', Object.fromEntries(headers().entries()));
-    console.log('Body preview:', body.slice(0, 100));
-    
     if (!signature) {
       console.error('No stripe signature found');
       return NextResponse.json({ error: 'No signature' }, { status: 400 });
@@ -37,11 +33,7 @@ export async function POST(req: Request) {
 
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(
-        body,
-        signature,
-        webhookSecret
-      );
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       console.log('Event type received:', event.type);
     } catch (err) {
       console.error('Webhook signature verification failed:', err);
@@ -50,20 +42,17 @@ export async function POST(req: Request) {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
-      console.log('Session data:', {
-        paymentStatus: session.payment_status,
-        metadata: session.metadata,
-        clientReferenceId: session.client_reference_id
-      });
       
       if (session.payment_status === 'paid') {
-        const userId = session.metadata?.userId || session.client_reference_id;
+        const userId = session.metadata?.userId;
         const points = parseInt(session.metadata?.points || '0');
+        const displayName = session.metadata?.displayName;
 
-        console.log('Processing payment for:', { userId, points });
+        console.log('Processing payment for:', { userId, points, displayName });
 
         if (userId && points) {
           try {
+            // First, get current points (with 500 as default)
             const { data: currentData, error: fetchError } = await supabase
               .from('user_points')
               .select('points')
@@ -75,20 +64,25 @@ export async function POST(req: Request) {
               throw fetchError;
             }
 
-            const currentPoints = currentData?.points ?? 0;
+            // Use 500 as default if no existing record
+            const currentPoints = currentData?.points ?? 500;
             const newPoints = currentPoints + points;
 
             console.log('Points calculation:', {
               currentPoints,
               pointsToAdd: points,
-              newTotal: newPoints
+              newTotal: newPoints,
+              userId,
+              displayName
             });
 
+            // Update points using upsert, including display_name
             const { error: updateError } = await supabase
               .from('user_points')
               .upsert({ 
-                user_id: userId, 
+                user_id: userId,
                 points: newPoints,
+                display_name: displayName,
                 updated_at: new Date().toISOString()
               });
 
@@ -97,13 +91,19 @@ export async function POST(req: Request) {
               throw updateError;
             }
 
-            console.log('Points updated successfully:', { userId, newPoints });
+            console.log('Points updated successfully:', { 
+              userId, 
+              displayName,
+              newPoints 
+            });
+            
             return NextResponse.json({ 
               success: true,
               userId,
               pointsAdded: points,
-              newTotal: newPoints
-            }, { status: 200 });
+              newTotal: newPoints,
+              displayName
+            });
           } catch (error) {
             console.error('Error updating user points:', error);
             return NextResponse.json({ 
@@ -130,3 +130,4 @@ export async function POST(req: Request) {
     }, { status: 500 });
   }
 }
+
