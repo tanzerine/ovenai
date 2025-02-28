@@ -6,11 +6,11 @@ import { Analytics } from "@vercel/analytics/react"
 import Script from 'next/script'
 
 export const metadata: Metadata = {
-  title: "Oven AI | High-Quality 3D Icon Generator for Designers & Developers",
+  title: "Free 3D Icon | Stunning Quality 3D Icon Generator Oven AI",
   description: "Create unique, cohesive 3D icons for any subject with Oven AI. Perfect for prototyping, branding, and tech projects. Features AI-powered design and background removal. Start free!",
   keywords: "3D icon generator, AI design, background removal, prototyping, branding, tech startup, Oven AI",
   openGraph: {
-    title: "Oven AI | Create Professional 3D Icons Instantly",
+    title: "Oven AI | Create Free Professional 3D Icons Instantly",
     description: "Generate high-quality, unique 3D icons for your design and development projects. AI-powered, with background removal feature.",
     type: "website",
     images: [
