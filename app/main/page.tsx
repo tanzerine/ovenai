@@ -314,7 +314,7 @@ export default function GeneratePage() {
                 disabled={isGenerating || !prompt.trim()}
                 style={{ marginTop: 8, width: '100%', background: isGenerating || !prompt.trim() ? 'var(--line)' : 'linear-gradient(180deg, #3B82F6, #2563EB)', color: isGenerating || !prompt.trim() ? 'var(--muted)' : 'white', padding: '14px 18px', borderRadius: 14, fontSize: 14.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: isGenerating ? 'none' : '0 6px 16px rgba(37,99,235,0.35), inset 0 1px 0 rgba(255,255,255,0.25)', border: 'none', fontFamily: 'inherit', cursor: isGenerating ? 'not-allowed' : 'pointer', transition: 'all .2s' }}
               >
-                <SparkIcon /> {isGenerating ? 'Baking…' : 'Run · 1 credit'}
+                <SparkIcon /> {isGenerating ? 'Baking…' : 'Run · 50 credit'}
               </button>
             </div>
 
