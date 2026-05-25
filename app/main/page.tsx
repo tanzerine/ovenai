@@ -163,8 +163,8 @@ export default function GeneratePage() {
     toastTimers.current.forEach(clearTimeout)
     setToast(msg); setToastFading(false)
     toastTimers.current = [
-      setTimeout(() => setToastFading(true), 8000),
-      setTimeout(() => setToast(null), 10000),
+      setTimeout(() => setToastFading(true), 28000),
+      setTimeout(() => setToast(null), 30000),
     ]
   }
 
@@ -184,14 +184,7 @@ export default function GeneratePage() {
     const q = params.get('q')
     const img = params.get('img')
     if (q) setPrompt(q)
-    if (img) {
-      setRemixImageUrl(img)
-      setToast('This may take 2–3 min')
-      setToastFading(false)
-      const t1 = setTimeout(() => setToastFading(true), 8000)
-      const t2 = setTimeout(() => setToast(null), 10000)
-      return () => { clearTimeout(t1); clearTimeout(t2) }
-    }
+    if (img) setRemixImageUrl(img)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── model-viewer progress & load events ────────────── */
@@ -371,7 +364,7 @@ export default function GeneratePage() {
     if (!url) return
     if (sourceUrl) setOriginalImageUrl(sourceUrl)
     setIsGenerating3D(true); setModelUrl(null); setView3D(false); setModel3DLoadProgress(0); setError('')
-    showToast('This may take 2–3 min')
+    showToast('This may take 5~10 min, please do not close the browser')
     try {
       const res = await fetch('/api/generate-3d', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -585,7 +578,6 @@ export default function GeneratePage() {
                 {hasResult && !view3D && (
                   <button
                     onClick={() => {
-                      showToast('This may take 2–3 min')
                       const p = new URLSearchParams()
                       if (prompt) p.set('q', prompt)
                       if (originalImageUrl) p.set('img', originalImageUrl)
@@ -668,7 +660,7 @@ export default function GeneratePage() {
                 {[
                   { label: 'Download', icon: <DownloadIcon />, onClick: view3D && modelUrl ? downloadGlb : downloadImage, disabled: !hasResult },
                   { label: isGenerating3D ? 'Generating…' : modelUrl ? (view3D ? '← Image' : '3D View') : 'Make it 3D', icon: <SparkIcon />, onClick: modelUrl ? () => setView3D(v => !v) : () => generate3D(), disabled: !hasResult || isGenerating3D },
-                  { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: () => { showToast('This may take 2–3 min'); removeBackground() }, disabled: !hasResult || isRemovingBackground },
+                  { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: () => { showToast('This may take 5~10 min, please do not close the browser'); removeBackground() }, disabled: !hasResult || isRemovingBackground },
                 ].map((btn, i) => (
                   <button
                     key={i}
