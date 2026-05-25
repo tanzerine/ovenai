@@ -107,10 +107,25 @@ export default function GeneratePage() {
   const [isImageLoaded, setIsImageLoaded] = useState(false)
   const [genProgress, setGenProgress] = useState(0)
   const [genStep, setGenStep] = useState('')
+  const [recentRenders, setRecentRenders] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      return JSON.parse(sessionStorage.getItem('oven_recent_renders') ?? '[]')
+    } catch { return [] }
+  })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { points, updatePoints } = usePointsStore()
 
   const hasResult = !!originalImageUrl
+
+  /* ── Recent renders ─────────────────────────────────── */
+  const addRecentRender = (url: string) => {
+    setRecentRenders(prev => {
+      const next = [url, ...prev.filter(u => u !== url)].slice(0, 8)
+      try { sessionStorage.setItem('oven_recent_renders', JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
 
   /* ── Handlers (unchanged logic) ─────────────────────── */
   const handleFile = (f: File | null) => { if (f) setImageFile(f) }
@@ -165,6 +180,7 @@ export default function GeneratePage() {
             if (ev.status === 'completed' && ev.url) {
               setOriginalImageUrl(ev.url); setIsLoading(false)
               setGenProgress(100); setGenStep('Done!')
+              addRecentRender(ev.url)
               return
             } else if (ev.status === 'failed') {
               setError(ev.error || 'Generation failed')
@@ -428,20 +444,25 @@ export default function GeneratePage() {
               </div>
 
               {/* Recent renders */}
-              <div style={{ marginTop: 28 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>Recent renders</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-                  {['/assets/diamond.webp', '/assets/trophy.webp', '/assets/shake.webp', '/assets/icecream.webp'].map((src, i) => (
-                    <div key={i} style={{ aspectRatio: '1', borderRadius: 12, background: 'white', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 14px rgba(20,30,80,0.08)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '' }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={src} alt="" style={{ width: '70%', height: '70%', objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(20,30,80,0.10))' }} />
-                    </div>
-                  ))}
+              {recentRenders.length > 0 && (
+                <div style={{ marginTop: 28 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>Recent renders</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                    {recentRenders.slice(0, 8).map((src, i) => (
+                      <div
+                        key={i}
+                        onClick={() => { setOriginalImageUrl(src); setRemovedBgImageUrl(null); setShowOriginal(true); setIsImageLoaded(false) }}
+                        style={{ aspectRatio: '1', borderRadius: 12, background: 'white', border: `1px solid ${src === originalImageUrl ? 'var(--blue)' : 'var(--line)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s', boxShadow: src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : 'none' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '0 6px 14px rgba(20,30,80,0.08)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '' }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt="" style={{ width: '75%', height: '75%', objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(20,30,80,0.10))' }} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
