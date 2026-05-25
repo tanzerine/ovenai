@@ -1,5 +1,21 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-namespace */
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'model-viewer': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & {
+          src?: string; alt?: string; 'auto-rotate'?: boolean | string;
+          'camera-controls'?: boolean | string; 'shadow-intensity'?: string;
+          exposure?: string; style?: React.CSSProperties;
+        },
+        HTMLElement
+      >
+    }
+  }
+}
+
 import React, { useState, useRef, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { usePointsStore } from '../store/usePointsStore'
@@ -108,6 +124,9 @@ export default function GeneratePage() {
   const [genProgress, setGenProgress] = useState(0)
   const [genStep, setGenStep] = useState('')
   const [remixImageUrl, setRemixImageUrl] = useState<string | null>(null)
+  const [modelUrl, setModelUrl] = useState<string | null>(null)
+  const [isGenerating3D, setIsGenerating3D] = useState(false)
+  const [view3D, setView3D] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [toastFading, setToastFading] = useState(false)
   const toastTimers = useRef<ReturnType<typeof setTimeout>[]>([])
@@ -130,6 +149,16 @@ export default function GeneratePage() {
       setTimeout(() => setToast(null), 10000),
     ]
   }
+
+  /* ── Load model-viewer web component once ───────────── */
+  useEffect(() => {
+    if (document.querySelector('[data-mv-script]')) return
+    const s = document.createElement('script')
+    s.type = 'module'
+    s.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js'
+    s.setAttribute('data-mv-script', '1')
+    document.head.appendChild(s)
+  }, [])
 
   /* ── Read remix params on mount ─────────────────────── */
   useEffect(() => {
@@ -167,6 +196,7 @@ export default function GeneratePage() {
     setIsGenerating(true); setIsLoading(true); setIsImageLoaded(false)
     setGenProgress(0); setGenStep('Starting up…')
     setError(''); setOriginalImageUrl(null); setRemovedBgImageUrl(null); setShowOriginal(true)
+    setModelUrl(null); setView3D(false)
     const originalPoints = points
     try {
       await updatePoints(userEmail, originalPoints - 50)
@@ -245,6 +275,59 @@ export default function GeneratePage() {
       setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
       try { await updatePoints(userEmail, originalPoints) } catch {}
     } finally { setIsRemovingBackground(false) }
+  }
+
+  const streamFor3D = async (predictionId: string) => {
+    try {
+      const response = await fetch(`/api/stream-prediction?id=${predictionId}`)
+      if (!response.body) throw new Error('No stream body')
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buf = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buf += decoder.decode(value, { stream: true })
+        const parts = buf.split('\n\n')
+        buf = parts.pop() ?? ''
+        for (const chunk of parts) {
+          const line = chunk.split('\n').find(l => l.startsWith('data: '))
+          if (!line) continue
+          try {
+            const ev = JSON.parse(line.slice(6))
+            if (ev.status === 'completed' && ev.url) {
+              setModelUrl(ev.url); setIsGenerating3D(false); setView3D(true); return
+            } else if (ev.status === 'failed') {
+              setError(ev.error || '3D generation failed'); setIsGenerating3D(false); return
+            }
+          } catch {}
+        }
+      }
+    } catch (err) {
+      setError(`3D error: ${err instanceof Error ? err.message : String(err)}`)
+      setIsGenerating3D(false)
+    }
+  }
+
+  const generate3D = async () => {
+    if (!originalImageUrl) return
+    setIsGenerating3D(true); setModelUrl(null); setView3D(false); setError('')
+    showToast('This may take 2–3 min')
+    try {
+      const res = await fetch('/api/generate-3d', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: originalImageUrl })
+      })
+      const data = await res.json()
+      if (res.ok && data.success && data.predictionId) {
+        await streamFor3D(data.predictionId)
+      } else {
+        throw new Error(data.error || 'Failed to start 3D generation')
+      }
+    } catch (err) {
+      setError(`3D error: ${err instanceof Error ? err.message : String(err)}`)
+      setIsGenerating3D(false)
+    }
   }
 
   const downloadImage = async () => {
@@ -470,7 +553,7 @@ export default function GeneratePage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 10 }}>
                 {[
                   { label: 'Download', icon: <DownloadIcon />, onClick: downloadImage, disabled: !hasResult },
-                  { label: 'Make it 3D', icon: <SparkIcon />, onClick: () => showToast('This may take 2–3 min'), disabled: !hasResult },
+                  { label: isGenerating3D ? 'Generating…' : modelUrl ? 'View 3D' : 'Make it 3D', icon: <SparkIcon />, onClick: modelUrl ? () => setView3D(v => !v) : generate3D, disabled: !hasResult || isGenerating3D },
                   { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: () => { showToast('This may take 2–3 min'); removeBackground() }, disabled: !hasResult || isRemovingBackground },
                 ].map((btn, i) => (
                   <button
@@ -483,6 +566,28 @@ export default function GeneratePage() {
                   </button>
                 ))}
               </div>
+
+              {/* 3D viewer */}
+              {(isGenerating3D || modelUrl) && (
+                <div style={{ marginTop: 16, borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)', background: '#0B0B0E' }}>
+                  {isGenerating3D ? (
+                    <div style={{ height: 320, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+                      <div style={{ width: 36, height: 36, border: '3px solid rgba(255,255,255,0.12)', borderTopColor: 'var(--blue)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>Building 3D model…</div>
+                    </div>
+                  ) : view3D && modelUrl ? (
+                    <model-viewer
+                      src={modelUrl}
+                      alt="Generated 3D model"
+                      auto-rotate
+                      camera-controls
+                      shadow-intensity="1"
+                      exposure="0.9"
+                      style={{ width: '100%', height: 360, display: 'block', background: '#0B0B0E' }}
+                    />
+                  ) : null}
+                </div>
+              )}
 
               {/* Recent renders */}
               <div style={{ marginTop: 28 }}>
