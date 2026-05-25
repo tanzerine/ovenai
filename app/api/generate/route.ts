@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
           prompt,
           image_input: imageInputs,
           aspect_ratio: "1:1",
-          resolution: "1K",
+          resolution: "2K",
           output_format: "png",
         }
       })

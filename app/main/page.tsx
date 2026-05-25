@@ -137,8 +137,15 @@ export default function GeneratePage() {
     const q = params.get('q')
     const img = params.get('img')
     if (q) setPrompt(q)
-    if (img) setRemixImageUrl(img)
-  }, [])
+    if (img) {
+      setRemixImageUrl(img)
+      setToast('This may take 2–3 min')
+      setToastFading(false)
+      const t1 = setTimeout(() => setToastFading(true), 8000)
+      const t2 = setTimeout(() => setToast(null), 10000)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Recent renders ─────────────────────────────────── */
   const addRecentRender = (url: string) => {
@@ -459,15 +466,6 @@ export default function GeneratePage() {
                 )}
               </div>
 
-              {/* Toast */}
-              {toast && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10, opacity: toastFading ? 0 : 1, transition: 'opacity 2s ease', pointerEvents: 'none' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 100, fontSize: 12, color: '#92400E', fontWeight: 500 }}>
-                    ⏱ {toast}
-                  </div>
-                </div>
-              )}
-
               {/* Action bar */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 10 }}>
                 {[
@@ -518,6 +516,13 @@ export default function GeneratePage() {
           The information provided on this website is for general purposes only. Oven does not guarantee the accuracy or reliability of any content. Commercial availability and features may change without notice.
         </div>
       </main>
+
+      {/* Toast — fixed so it's never clipped */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 9999, pointerEvents: 'none', opacity: toastFading ? 0 : 1, transition: 'opacity 2s ease', display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 16px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 100, fontSize: 13, color: '#92400E', fontWeight: 500, boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}>
+          ⏱ {toast}
+        </div>
+      )}
     </div>
   )
 }
