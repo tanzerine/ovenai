@@ -364,7 +364,7 @@ export default function GeneratePage() {
     if (!url) return
     if (sourceUrl) setOriginalImageUrl(sourceUrl)
     setIsGenerating3D(true); setModelUrl(null); setView3D(false); setModel3DLoadProgress(0); setError('')
-    showToast('This may take 5~10 min, please do not close the browser')
+    showToast('This may take 3~5 min, please do not close the browser')
     try {
       const res = await fetch('/api/generate-3d', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -578,6 +578,7 @@ export default function GeneratePage() {
                 {hasResult && !view3D && (
                   <button
                     onClick={() => {
+                      showToast('This may take 3~5 min, please do not close the browser')
                       const p = new URLSearchParams()
                       if (prompt) p.set('q', prompt)
                       if (originalImageUrl) p.set('img', originalImageUrl)
@@ -660,7 +661,7 @@ export default function GeneratePage() {
                 {[
                   { label: 'Download', icon: <DownloadIcon />, onClick: view3D && modelUrl ? downloadGlb : downloadImage, disabled: !hasResult },
                   { label: isGenerating3D ? 'Generating…' : modelUrl ? (view3D ? '← Image' : '3D View') : 'Make it 3D', icon: <SparkIcon />, onClick: modelUrl ? () => setView3D(v => !v) : () => generate3D(), disabled: !hasResult || isGenerating3D },
-                  { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: () => { showToast('This may take 5~10 min, please do not close the browser'); removeBackground() }, disabled: !hasResult || isRemovingBackground },
+                  { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: () => { showToast('This may take 3~5 min, please do not close the browser'); removeBackground() }, disabled: !hasResult || isRemovingBackground },
                 ].map((btn, i) => (
                   <button
                     key={i}
