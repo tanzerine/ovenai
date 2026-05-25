@@ -151,7 +151,7 @@ export default function GeneratePage() {
         const data = await response.json()
         if (data.status === 'completed') {
           const url = Array.isArray(data.imageUrl) ? data.imageUrl[0] : data.imageUrl
-          if (url) setOriginalImageUrl(url)
+          if (url) { setOriginalImageUrl(url); setIsLoading(false) }
           else { setError('Invalid image URL'); setIsLoading(false); setIsGenerating(false) }
         } else if (data.status === 'failed') {
           setError('Failed to generate icon. Please try again.'); setIsLoading(false); setIsGenerating(false)
@@ -349,9 +349,15 @@ export default function GeneratePage() {
                   </button>
                 )}
                 {isLoading ? (
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ width: 56, height: 56, margin: '0 auto 14px', borderRadius: '50%', background: 'linear-gradient(135deg, #DCE9FF, #7BB0FF)', animation: 'pulse 1.4s ease-in-out infinite', boxShadow: '0 10px 28px rgba(123,176,255,0.4)' }} />
-                    <div style={{ fontSize: 13, color: 'var(--muted)' }}>Generating…</div>
+                  <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                    <div style={{ position: 'relative', width: 72, height: 72, margin: '0 auto 18px' }}>
+                      <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, #DCE9FF, #7BB0FF)', animation: 'pulse 1.4s ease-in-out infinite', boxShadow: '0 10px 28px rgba(123,176,255,0.4)' }} />
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: 'white', animation: 'spin 0.9s linear infinite' }} />
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-2)', marginBottom: 6 }}>Generating your icon…</div>
+                    <div style={{ fontSize: 12, color: 'var(--muted-2)' }}>Usually takes 6 – 12 seconds</div>
                   </div>
                 ) : ((showOriginal && originalImageUrl) || (!showOriginal && removedBgImageUrl)) ? (
                   <Image
