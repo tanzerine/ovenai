@@ -350,7 +350,7 @@ export default function GeneratePage() {
               <button
                 onClick={generateIcon}
                 disabled={isGenerating || !prompt.trim()}
-                style={{ marginTop: 8, width: '100%', background: isGenerating || !prompt.trim() ? 'var(--line)' : 'linear-gradient(180deg, #3B82F6, #2563EB)', color: isGenerating || !prompt.trim() ? 'var(--muted)' : 'white', padding: '14px 18px', borderRadius: 14, fontSize: 14.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: isGenerating ? 'none' : '0 6px 16px rgba(37,99,235,0.35), inset 0 1px 0 rgba(255,255,255,0.25)', border: 'none', fontFamily: 'inherit', cursor: isGenerating ? 'not-allowed' : 'pointer', transition: 'all .2s' }}
+                style={{ marginTop: 8, width: '100%', background: isGenerating || !prompt.trim() ? 'var(--blue-soft)' : 'linear-gradient(180deg, #3B82F6, #2563EB)', color: isGenerating || !prompt.trim() ? 'var(--blue)' : 'white', padding: '14px 18px', borderRadius: 14, fontSize: 14.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: isGenerating || !prompt.trim() ? 'none' : '0 6px 16px rgba(37,99,235,0.35), inset 0 1px 0 rgba(255,255,255,0.25)', border: 'none', fontFamily: 'inherit', cursor: isGenerating || !prompt.trim() ? 'not-allowed' : 'pointer', transition: 'all .2s' }}
               >
                 <SparkIcon /> {isGenerating ? 'Baking…' : 'Run · 50 credit'}
               </button>
@@ -387,16 +387,9 @@ export default function GeneratePage() {
                   </button>
                 )}
                 {isLoading ? (
-                  <div style={{ textAlign: 'center', padding: '20px 24px', width: '100%' }}>
-                    {/* Pulsing orb */}
-                    <div style={{ position: 'relative', width: 72, height: 72, margin: '0 auto 20px' }}>
-                      <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, #DCE9FF, #7BB0FF)', animation: 'pulse 1.4s ease-in-out infinite', boxShadow: '0 10px 28px rgba(123,176,255,0.4)' }} />
-                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: 'white', animation: 'spin 0.9s linear infinite' }} />
-                      </div>
-                    </div>
+                  <div style={{ padding: '0 24px', width: '100%' }}>
                     {/* Label + percentage */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>Generating…</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--blue)' }}>{genProgress}%</span>
                     </div>
@@ -444,25 +437,28 @@ export default function GeneratePage() {
               </div>
 
               {/* Recent renders */}
-              {recentRenders.length > 0 && (
-                <div style={{ marginTop: 28 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>Recent renders</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-                    {recentRenders.slice(0, 8).map((src, i) => (
-                      <div
-                        key={i}
-                        onClick={() => { setOriginalImageUrl(src); setRemovedBgImageUrl(null); setShowOriginal(true); setIsImageLoaded(false) }}
-                        style={{ aspectRatio: '1', borderRadius: 12, background: 'white', border: `1px solid ${src === originalImageUrl ? 'var(--blue)' : 'var(--line)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s', boxShadow: src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : 'none' }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '0 6px 14px rgba(20,30,80,0.08)' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '' }}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={src} alt="" style={{ width: '75%', height: '75%', objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(20,30,80,0.10))' }} />
-                      </div>
-                    ))}
-                  </div>
+              <div style={{ marginTop: 28 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>Recent renders</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                  {recentRenders.length > 0
+                    ? recentRenders.slice(0, 8).map((src, i) => (
+                        <div
+                          key={i}
+                          onClick={() => { setOriginalImageUrl(src); setRemovedBgImageUrl(null); setShowOriginal(true); setIsImageLoaded(false) }}
+                          style={{ aspectRatio: '1', borderRadius: 12, background: 'white', border: `1px solid ${src === originalImageUrl ? 'var(--blue)' : 'var(--line)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s', boxShadow: src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : 'none' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '0 6px 14px rgba(20,30,80,0.08)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '' }}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={src} alt="" style={{ width: '75%', height: '75%', objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(20,30,80,0.10))' }} />
+                        </div>
+                      ))
+                    : Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} style={{ aspectRatio: '1', borderRadius: 12, background: 'var(--line)', border: '1px solid var(--line-2)', animation: 'pulse 1.8s ease-in-out infinite', animationDelay: `${i * 0.15}s` }} />
+                      ))
+                  }
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
