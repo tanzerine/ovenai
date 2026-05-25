@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Replicate from 'replicate'
 
+export const maxDuration = 240
+
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
 
 export async function POST(request: NextRequest) {
@@ -13,7 +15,7 @@ export async function POST(request: NextRequest) {
       input: {
         image: imageUrl,
         enable_pbr: true,
-        face_count: 500000,
+        face_count: 400000,
         generate_type: "Normal",
       }
     })

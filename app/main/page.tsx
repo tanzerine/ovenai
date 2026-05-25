@@ -496,8 +496,20 @@ export default function GeneratePage() {
               </div>
 
               {/* Preview box */}
-              <div style={{ aspectRatio: '1', borderRadius: 16, background: hasResult ? 'white' : '#EFEFEC', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginBottom: 16 }}>
-                {hasResult && (
+              <div style={{ aspectRatio: '1', borderRadius: 16, background: view3D && modelUrl ? '#0B0B0E' : isGenerating3D ? '#0B0B0E' : hasResult ? 'white' : '#EFEFEC', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginBottom: 16 }}>
+
+                {/* 3D / Image toggle — top-left */}
+                {modelUrl && !isLoading && !isGenerating3D && (
+                  <button
+                    onClick={() => setView3D(v => !v)}
+                    style={{ position: 'absolute', top: 12, left: 12, zIndex: 3, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 100, background: view3D ? 'rgba(255,255,255,0.15)' : 'white', color: view3D ? 'white' : 'var(--ink-2)', border: view3D ? '1px solid rgba(255,255,255,0.25)' : '1px solid var(--line)', fontSize: 12.5, fontWeight: 500, backdropFilter: 'blur(8px)', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
+                  >
+                    {view3D ? '← Image' : '3D View'}
+                  </button>
+                )}
+
+                {/* Remix — top-right */}
+                {hasResult && !view3D && (
                   <button
                     onClick={() => {
                       showToast('This may take 2–3 min')
@@ -512,25 +524,39 @@ export default function GeneratePage() {
                       a.click()
                       document.body.removeChild(a)
                     }}
-                    style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 100, background: 'white', color: 'var(--ink-2)', border: '1px solid var(--line)', fontSize: 12.5, fontWeight: 500, boxShadow: '0 4px 10px rgba(20,30,80,0.08)', cursor: 'pointer', fontFamily: 'inherit' }}
+                    style={{ position: 'absolute', top: 12, right: 12, zIndex: 3, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 100, background: 'white', color: 'var(--ink-2)', border: '1px solid var(--line)', fontSize: 12.5, fontWeight: 500, boxShadow: '0 4px 10px rgba(20,30,80,0.08)', cursor: 'pointer', fontFamily: 'inherit' }}
                   >
                     <RemixIcon /> Remix
                   </button>
                 )}
+
+                {/* Content */}
                 {isLoading ? (
                   <div style={{ padding: '0 24px', width: '100%' }}>
-                    {/* Label + percentage */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>Generating…</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--blue)' }}>{genProgress}%</span>
                     </div>
-                    {/* Progress bar */}
                     <div style={{ height: 6, background: 'var(--line)', borderRadius: 100, overflow: 'hidden', marginBottom: 10 }}>
                       <div style={{ height: '100%', width: `${genProgress}%`, background: 'linear-gradient(90deg, #7BB0FF, #3B82F6)', borderRadius: 100, transition: 'width 0.6s ease' }} />
                     </div>
-                    {/* Step text */}
                     <div style={{ fontSize: 11.5, color: 'var(--muted-2)', fontFamily: 'var(--font-geist-mono)', minHeight: 16 }}>{genStep}</div>
                   </div>
+                ) : isGenerating3D ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+                    <div style={{ width: 36, height: 36, border: '3px solid rgba(255,255,255,0.12)', borderTopColor: 'var(--blue)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>Building 3D model…</div>
+                  </div>
+                ) : view3D && modelUrl ? (
+                  <model-viewer
+                    src={modelUrl}
+                    alt="Generated 3D model"
+                    auto-rotate
+                    camera-controls
+                    shadow-intensity="1"
+                    exposure="0.9"
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', background: '#0B0B0E' }}
+                  />
                 ) : ((showOriginal && originalImageUrl) || (!showOriginal && removedBgImageUrl)) ? (
                   <Image
                     src={(showOriginal ? originalImageUrl : removedBgImageUrl)!}
@@ -553,7 +579,7 @@ export default function GeneratePage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 10 }}>
                 {[
                   { label: 'Download', icon: <DownloadIcon />, onClick: downloadImage, disabled: !hasResult },
-                  { label: isGenerating3D ? 'Generating…' : modelUrl ? 'View 3D' : 'Make it 3D', icon: <SparkIcon />, onClick: modelUrl ? () => setView3D(v => !v) : generate3D, disabled: !hasResult || isGenerating3D },
+                  { label: isGenerating3D ? 'Generating…' : modelUrl ? (view3D ? '← Image' : '3D View') : 'Make it 3D', icon: <SparkIcon />, onClick: modelUrl ? () => setView3D(v => !v) : generate3D, disabled: !hasResult || isGenerating3D },
                   { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: () => { showToast('This may take 2–3 min'); removeBackground() }, disabled: !hasResult || isRemovingBackground },
                 ].map((btn, i) => (
                   <button
@@ -566,28 +592,6 @@ export default function GeneratePage() {
                   </button>
                 ))}
               </div>
-
-              {/* 3D viewer */}
-              {(isGenerating3D || modelUrl) && (
-                <div style={{ marginTop: 16, borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)', background: '#0B0B0E' }}>
-                  {isGenerating3D ? (
-                    <div style={{ height: 320, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
-                      <div style={{ width: 36, height: 36, border: '3px solid rgba(255,255,255,0.12)', borderTopColor: 'var(--blue)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>Building 3D model…</div>
-                    </div>
-                  ) : view3D && modelUrl ? (
-                    <model-viewer
-                      src={modelUrl}
-                      alt="Generated 3D model"
-                      auto-rotate
-                      camera-controls
-                      shadow-intensity="1"
-                      exposure="0.9"
-                      style={{ width: '100%', height: 360, display: 'block', background: '#0B0B0E' }}
-                    />
-                  ) : null}
-                </div>
-              )}
 
               {/* Recent renders */}
               <div style={{ marginTop: 28 }}>
