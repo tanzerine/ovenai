@@ -108,6 +108,9 @@ export default function GeneratePage() {
   const [genProgress, setGenProgress] = useState(0)
   const [genStep, setGenStep] = useState('')
   const [remixImageUrl, setRemixImageUrl] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const [toastFading, setToastFading] = useState(false)
+  const toastTimers = useRef<ReturnType<typeof setTimeout>[]>([])
   const [recentRenders, setRecentRenders] = useState<string[]>(() => {
     if (typeof window === 'undefined') return []
     try {
@@ -118,6 +121,15 @@ export default function GeneratePage() {
   const { points, updatePoints } = usePointsStore()
 
   const hasResult = !!originalImageUrl
+
+  const showToast = (msg: string) => {
+    toastTimers.current.forEach(clearTimeout)
+    setToast(msg); setToastFading(false)
+    toastTimers.current = [
+      setTimeout(() => setToastFading(true), 8000),
+      setTimeout(() => setToast(null), 10000),
+    ]
+  }
 
   /* ── Read remix params on mount ─────────────────────── */
   useEffect(() => {
@@ -398,6 +410,7 @@ export default function GeneratePage() {
                 {hasResult && (
                   <button
                     onClick={() => {
+                      showToast('This may take 2–3 min')
                       const p = new URLSearchParams()
                       if (prompt) p.set('q', prompt)
                       if (originalImageUrl) p.set('img', originalImageUrl)
@@ -446,12 +459,21 @@ export default function GeneratePage() {
                 )}
               </div>
 
+              {/* Toast */}
+              {toast && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10, opacity: toastFading ? 0 : 1, transition: 'opacity 2s ease', pointerEvents: 'none' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 100, fontSize: 12, color: '#92400E', fontWeight: 500 }}>
+                    ⏱ {toast}
+                  </div>
+                </div>
+              )}
+
               {/* Action bar */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 10 }}>
                 {[
                   { label: 'Download', icon: <DownloadIcon />, onClick: downloadImage, disabled: !hasResult },
-                  { label: 'Make it 3D', icon: <SparkIcon />, onClick: () => {}, disabled: !hasResult },
-                  { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: removeBackground, disabled: !hasResult || isRemovingBackground },
+                  { label: 'Make it 3D', icon: <SparkIcon />, onClick: () => showToast('This may take 2–3 min'), disabled: !hasResult },
+                  { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: () => { showToast('This may take 2–3 min'); removeBackground() }, disabled: !hasResult || isRemovingBackground },
                 ].map((btn, i) => (
                   <button
                     key={i}
