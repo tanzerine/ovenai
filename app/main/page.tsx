@@ -593,7 +593,7 @@ export default function GeneratePage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 10 }}>
                 {[
                   { label: 'Download', icon: <DownloadIcon />, onClick: view3D && modelUrl ? downloadGlb : downloadImage, disabled: !hasResult },
-                  { label: isGenerating3D ? 'Generating…' : modelUrl ? (view3D ? '← Image' : '3D View') : 'Make it 3D', icon: <SparkIcon />, onClick: modelUrl ? () => setView3D(v => !v) : generate3D, disabled: !hasResult || isGenerating3D },
+                  { label: isGenerating3D ? 'Generating…' : modelUrl ? (view3D ? '← Image' : '3D View') : 'Make it 3D', icon: <SparkIcon />, onClick: modelUrl ? () => setView3D(v => !v) : () => generate3D(), disabled: !hasResult || isGenerating3D },
                   { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: () => { showToast('This may take 2–3 min'); removeBackground() }, disabled: !hasResult || isRemovingBackground },
                 ].map((btn, i) => (
                   <button
