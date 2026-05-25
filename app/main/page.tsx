@@ -127,9 +127,12 @@ export default function GeneratePage() {
   const [modelUrl, setModelUrl] = useState<string | null>(null)
   const [isGenerating3D, setIsGenerating3D] = useState(false)
   const [view3D, setView3D] = useState(false)
+  const [model3DLoadProgress, setModel3DLoadProgress] = useState(0)
+  const [hoveredRender, setHoveredRender] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [toastFading, setToastFading] = useState(false)
   const toastTimers = useRef<ReturnType<typeof setTimeout>[]>([])
+  const modelViewerRef = useRef<HTMLElement | null>(null)
   const [recentRenders, setRecentRenders] = useState<string[]>(() => {
     if (typeof window === 'undefined') return []
     try {
@@ -175,6 +178,21 @@ export default function GeneratePage() {
       return () => { clearTimeout(t1); clearTimeout(t2) }
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── model-viewer progress & load events ────────────── */
+  useEffect(() => {
+    const el = modelViewerRef.current
+    if (!el || !view3D || !modelUrl) return
+    setModel3DLoadProgress(0)
+    const onProgress = (e: Event) => {
+      const p = (e as CustomEvent).detail?.totalProgress ?? 0
+      setModel3DLoadProgress(p)
+    }
+    const onLoad = () => setModel3DLoadProgress(1)
+    el.addEventListener('progress', onProgress)
+    el.addEventListener('load', onLoad)
+    return () => { el.removeEventListener('progress', onProgress); el.removeEventListener('load', onLoad) }
+  }, [view3D, modelUrl])
 
   /* ── Recent renders ─────────────────────────────────── */
   const addRecentRender = (url: string) => {
@@ -275,14 +293,16 @@ export default function GeneratePage() {
     )
   }
 
-  const generate3D = async () => {
-    if (!originalImageUrl) return
-    setIsGenerating3D(true); setModelUrl(null); setView3D(false); setError('')
+  const generate3D = async (sourceUrl?: string) => {
+    const url = sourceUrl ?? originalImageUrl
+    if (!url) return
+    if (sourceUrl) setOriginalImageUrl(sourceUrl)
+    setIsGenerating3D(true); setModelUrl(null); setView3D(false); setModel3DLoadProgress(0); setError('')
     showToast('This may take 2–3 min')
     try {
       const res = await fetch('/api/generate-3d', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl: originalImageUrl })
+        body: JSON.stringify({ imageUrl: url })
       })
       const data = await res.json()
       if (res.ok && data.success && data.predictionId) {
@@ -294,6 +314,19 @@ export default function GeneratePage() {
       setError(`3D error: ${err instanceof Error ? err.message : String(err)}`)
       setIsGenerating3D(false)
     }
+  }
+
+  const downloadGlb = async () => {
+    if (!modelUrl) return
+    try {
+      const response = await fetch(modelUrl)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'model.glb'
+      document.body.appendChild(a); a.click()
+      window.URL.revokeObjectURL(url); document.body.removeChild(a)
+    } catch { setError('Failed to download 3D model') }
   }
 
   const downloadImage = async () => {
@@ -514,15 +547,30 @@ export default function GeneratePage() {
                     <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>Building 3D model…</div>
                   </div>
                 ) : view3D && modelUrl ? (
-                  <model-viewer
-                    src={modelUrl}
-                    alt="Generated 3D model"
-                    auto-rotate
-                    camera-controls
-                    shadow-intensity="1"
-                    exposure="0.9"
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', background: '#0B0B0E' }}
-                  />
+                  <>
+                    <model-viewer
+                      ref={(el) => { modelViewerRef.current = el as HTMLElement | null }}
+                      src={modelUrl}
+                      alt="Generated 3D model"
+                      auto-rotate
+                      camera-controls
+                      environment-image="neutral"
+                      shadow-intensity="1.5"
+                      shadow-softness="0.8"
+                      exposure="1.1"
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', background: '#0B0B0E' }}
+                    />
+                    {model3DLoadProgress < 1 && (
+                      <div style={{ position: 'absolute', inset: 0, zIndex: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, background: '#0B0B0E', pointerEvents: 'none' }}>
+                        <div style={{ width: 140, height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 100, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${Math.round(model3DLoadProgress * 100)}%`, background: 'linear-gradient(90deg, #7BB0FF, #3B82F6)', borderRadius: 100, transition: 'width 0.4s ease' }} />
+                        </div>
+                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-geist-mono)' }}>
+                          Fetching model… {Math.round(model3DLoadProgress * 100)}%
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : ((showOriginal && originalImageUrl) || (!showOriginal && removedBgImageUrl)) ? (
                   <Image
                     src={(showOriginal ? originalImageUrl : removedBgImageUrl)!}
@@ -544,7 +592,7 @@ export default function GeneratePage() {
               {/* Action bar */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 10 }}>
                 {[
-                  { label: 'Download', icon: <DownloadIcon />, onClick: downloadImage, disabled: !hasResult },
+                  { label: 'Download', icon: <DownloadIcon />, onClick: view3D && modelUrl ? downloadGlb : downloadImage, disabled: !hasResult },
                   { label: isGenerating3D ? 'Generating…' : modelUrl ? (view3D ? '← Image' : '3D View') : 'Make it 3D', icon: <SparkIcon />, onClick: modelUrl ? () => setView3D(v => !v) : generate3D, disabled: !hasResult || isGenerating3D },
                   { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: () => { showToast('This may take 2–3 min'); removeBackground() }, disabled: !hasResult || isRemovingBackground },
                 ].map((btn, i) => (
@@ -567,13 +615,19 @@ export default function GeneratePage() {
                     ? recentRenders.slice(0, 8).map((src, i) => (
                         <div
                           key={i}
-                          onClick={() => { setOriginalImageUrl(src); setRemovedBgImageUrl(null); setShowOriginal(true); setIsImageLoaded(false) }}
-                          style={{ aspectRatio: '1', borderRadius: 12, background: 'white', border: `1px solid ${src === originalImageUrl ? 'var(--blue)' : 'var(--line)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s', boxShadow: src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : 'none' }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '0 6px 14px rgba(20,30,80,0.08)' }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '' }}
+                          onClick={() => { setOriginalImageUrl(src); setRemovedBgImageUrl(null); setShowOriginal(true); setIsImageLoaded(false); setModelUrl(null); setView3D(false) }}
+                          style={{ aspectRatio: '1', borderRadius: 12, background: 'white', border: `1px solid ${src === originalImageUrl ? 'var(--blue)' : 'var(--line)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s', boxShadow: src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : 'none', position: 'relative', overflow: 'hidden' }}
+                          onMouseEnter={e => { setHoveredRender(i); (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '0 6px 14px rgba(20,30,80,0.08)' }}
+                          onMouseLeave={e => { setHoveredRender(null); (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '' }}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={src} alt="" style={{ width: '75%', height: '75%', objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(20,30,80,0.10))' }} />
+                          {hoveredRender === i && (
+                            <button
+                              onClick={e => { e.stopPropagation(); generate3D(src) }}
+                              style={{ position: 'absolute', bottom: 5, right: 5, padding: '3px 8px', borderRadius: 100, background: '#0B0B0E', color: 'white', fontSize: 10, fontWeight: 600, border: 'none', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.04em' }}
+                            >3D</button>
+                          )}
                         </div>
                       ))
                     : Array.from({ length: 4 }).map((_, i) => (
