@@ -219,44 +219,33 @@ export default function GeneratePage() {
     }
   }
 
-  const streamForResult = async (predictionId: string) => {
-    try {
-      const response = await fetch(`/api/stream-prediction?id=${predictionId}`)
-      if (!response.body) throw new Error('No stream body')
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buf = ''
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        buf += decoder.decode(value, { stream: true })
-        const parts = buf.split('\n\n')
-        buf = parts.pop() ?? ''
-        for (const chunk of parts) {
-          const line = chunk.split('\n').find(l => l.startsWith('data: '))
-          if (!line) continue
-          try {
-            const ev = JSON.parse(line.slice(6))
-            if (ev.status === 'completed' && ev.url) {
-              setOriginalImageUrl(ev.url); setIsLoading(false)
-              setGenProgress(100); setGenStep('Done!')
-              addRecentRender(ev.url)
-              return
-            } else if (ev.status === 'failed') {
-              setError(ev.error || 'Generation failed')
-              setIsLoading(false); setIsGenerating(false)
-              return
-            } else if (ev.status === 'processing') {
-              setGenProgress(ev.progress ?? 0)
-              setGenStep(ev.step ?? '')
-            }
-          } catch {}
-        }
-      }
-    } catch (err) {
-      setError(`Stream error: ${err instanceof Error ? err.message : String(err)}`)
-      setIsLoading(false); setIsGenerating(false)
+  const clientPoll = async (
+    predictionId: string,
+    onProgress: (progress: number, step: string) => void,
+    onComplete: (url: string) => void,
+    onError: (msg: string) => void,
+  ) => {
+    const MAX = 90 // 90 × 2 s = 3 min
+    for (let i = 0; i < MAX; i++) {
+      await new Promise(r => setTimeout(r, 2000))
+      try {
+        const res = await fetch(`/api/check-prediction?id=${predictionId}`)
+        const data = await res.json()
+        if (data.status === 'completed' && data.url) { onComplete(data.url); return }
+        if (data.status === 'failed') { onError(data.error || 'Generation failed'); return }
+        if (data.status === 'processing') onProgress(data.progress ?? 0, data.step ?? '')
+      } catch (err) { onError(err instanceof Error ? err.message : String(err)); return }
     }
+    onError('Timed out after 3 minutes')
+  }
+
+  const streamForResult = async (predictionId: string) => {
+    await clientPoll(
+      predictionId,
+      (progress, step) => { setGenProgress(progress); setGenStep(step) },
+      (url) => { setOriginalImageUrl(url); setIsLoading(false); setGenProgress(100); setGenStep('Done!'); addRecentRender(url) },
+      (msg) => { setError(msg); setIsLoading(false); setIsGenerating(false) },
+    )
   }
 
   const removeBackground = async () => {
@@ -278,35 +267,12 @@ export default function GeneratePage() {
   }
 
   const streamFor3D = async (predictionId: string) => {
-    try {
-      const response = await fetch(`/api/stream-prediction?id=${predictionId}`)
-      if (!response.body) throw new Error('No stream body')
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buf = ''
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        buf += decoder.decode(value, { stream: true })
-        const parts = buf.split('\n\n')
-        buf = parts.pop() ?? ''
-        for (const chunk of parts) {
-          const line = chunk.split('\n').find(l => l.startsWith('data: '))
-          if (!line) continue
-          try {
-            const ev = JSON.parse(line.slice(6))
-            if (ev.status === 'completed' && ev.url) {
-              setModelUrl(ev.url); setIsGenerating3D(false); setView3D(true); return
-            } else if (ev.status === 'failed') {
-              setError(ev.error || '3D generation failed'); setIsGenerating3D(false); return
-            }
-          } catch {}
-        }
-      }
-    } catch (err) {
-      setError(`3D error: ${err instanceof Error ? err.message : String(err)}`)
-      setIsGenerating3D(false)
-    }
+    await clientPoll(
+      predictionId,
+      () => {},
+      (url) => { setModelUrl(url); setIsGenerating3D(false); setView3D(true) },
+      (msg) => { setError(msg); setIsGenerating3D(false) },
+    )
   }
 
   const generate3D = async () => {
