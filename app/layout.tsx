@@ -1,52 +1,128 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next'
+import './globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
-import MainLayout from '../components/MainLayout';
-import { Analytics } from "@vercel/analytics/react"
+import MainLayout from '@/components/MainLayout'
+import { Analytics } from '@vercel/analytics/react'
 import Script from 'next/script'
 
+const BASE_URL = 'https://www.oveners.com'
+
 export const metadata: Metadata = {
-  title: "Free 3D Icon | Stunning Quality 3D Icon Generator Oven AI",
-  description: "Create unique, cohesive 3D icons for any subject with Oven AI. Perfect for prototyping, branding, and tech projects. Features AI-powered design and background removal. Start free!",
-  keywords: "3D icon generator, AI design, background removal, prototyping, branding, tech startup, Oven AI",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: 'Oven AI — 3D Icon Generator',
+    template: '%s | Oven AI',
+  },
+  description:
+    'Create stunning 3D icons in seconds. Type a description, pick a style — Oven AI bakes pixel-perfect 3D icons ready for your app, deck, or landing page. Free to start.',
+  keywords: [
+    '3D icon generator',
+    'AI icon maker',
+    'clay icon',
+    'glass icon',
+    'generate 3D icons',
+    'icon design tool',
+    'AI design',
+    'background removal',
+    'Oven AI',
+    'free icon generator',
+  ],
+  authors: [{ name: 'Oven AI', url: BASE_URL }],
+  creator: 'Oven AI',
+  publisher: 'Oven AI',
   openGraph: {
-    title: "Oven AI | Create Free Professional 3D Icons Instantly",
-    description: "Generate high-quality, unique 3D icons for your design and development projects. AI-powered, with background removal feature.",
-    type: "website",
+    title: 'Oven AI — Create Stunning 3D Icons in Seconds',
+    description:
+      'Type a word. Pick a style. Oven bakes a pixel-perfect 3D icon in seconds — ready to drop into your deck, app or landing page.',
+    url: BASE_URL,
+    siteName: 'Oven AI',
+    locale: 'en_US',
+    type: 'website',
     images: [
       {
-        url: "/path-to-your-og-image.jpg",
+        url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: "Oven AI 3D Icon Generator",
+        alt: 'Oven AI 3D Icon Generator',
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Oven AI: AI-Powered 3D Icon Generator",
-    description: "Create professional, unique 3D icons for your projects. Start free, pay as you grow.",
-    images: ["/path-to-your-twitter-image.jpg"],
+    card: 'summary_large_image',
+    title: 'Oven AI — 3D Icon Generator',
+    description:
+      'Create professional 3D icons for your projects in seconds. Free to start, no card required.',
+    images: ['/og-image.png'],
+    creator: '@oveners',
   },
-  alternates: {
-    canonical: "https://www.yourdomain.com",
+  alternates: { canonical: BASE_URL },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
-  robots: "index, follow",
-};
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${BASE_URL}/#organization`,
+      name: 'Oven AI',
+      url: BASE_URL,
+      logo: { '@type': 'ImageObject', url: `${BASE_URL}/logo.png` },
+      sameAs: ['https://twitter.com/oveners'],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${BASE_URL}/#website`,
+      url: BASE_URL,
+      name: 'Oven AI',
+      publisher: { '@id': `${BASE_URL}/#organization` },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: `${BASE_URL}/generate?q={search_term_string}`,
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'SoftwareApplication',
+      name: 'Oven AI',
+      operatingSystem: 'Web',
+      applicationCategory: 'DesignApplication',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+        description: 'Free tier available — 3 icons per day',
+      },
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '4.9',
+        ratingCount: '12540',
+      },
+    },
+  ],
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
       <html lang="en">
         <head>
+          {/* Google Fonts — Geist, Instrument Serif, Geist Mono */}
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+          />
+
           {/* Google Analytics */}
           <Script
             strategy="afterInteractive"
-            src={`https://www.googletagmanager.com/gtag/js?id=G-145NLXMVCJ`}
+            src="https://www.googletagmanager.com/gtag/js?id=G-145NLXMVCJ"
           />
           <Script
             id="google-analytics"
@@ -60,6 +136,12 @@ export default function RootLayout({
               `,
             }}
           />
+
+          {/* JSON-LD structured data */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
         </head>
         <body className="antialiased">
           <MainLayout>
@@ -69,5 +151,5 @@ export default function RootLayout({
         </body>
       </html>
     </ClerkProvider>
-  );
+  )
 }

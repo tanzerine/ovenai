@@ -1,43 +1,57 @@
-import React from 'react';
-import Image from 'next/image';
+import React from 'react'
+import Link from 'next/link'
 
+const FOOTER_LINKS = ['Privacy', 'Terms', 'Status', 'Twitter', 'Discord']
 
-const Footer: React.FC = () => {
+export default function BaseFooter() {
   return (
-    <div className="Footer w-full bg-white">
-      <div className="max-w-[1200px] mx-auto px-4 mt-20">
-        <div className="flex flex-col items-center py-10">
-          <div className="flex items-center mb-6">
-            <div className="flex items-center w-[130px] h-[84px]">
-            <Image 
-  src="/logo_bl.svg"
-  alt="Logo"
-  width={136} // 34 * 4 (assuming 1 unit in Tailwind = 0.25rem, and 1rem = 16px)
-  height={72} // 18 * 4 (assuming 1 unit in Tailwind = 0.25rem, and 1rem = 16px)
-  className="rounded-full mr-2"
-/>            </div>
-            <div className="w-px h-[25px] mx-4 bg-[#e1e4eb]" />
-            <div className="text-[#666666] text-lg font-medium font-['Instrument Sans']">
-              The future of Generative Design @2024 Oven
-            </div>
-          </div>
-          
-          <div className="w-full border-t border-[#e1e4eb] my-6" />
-          
-          <div className="text-center text-[#606060] text-lg font-medium font-['Instrument Sans'] max-w-[880px]">
-            <p className="mb-4">
-              The information provided on this website is for general purposes only. Oven does not guarantee the 
-              accuracy or reliability of any content. Commercial availability and features may change 
-              without notice. User experiences may vary. Always consult a professional for advice specific to your needs.
+    <footer style={{ padding: '40px 24px 32px', borderTop: '1px solid var(--line)' }}>
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 20,
+        }}
+      >
+        {/* Brand */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Oven AI"
+            style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover' }}
+          />
+          <span style={{ fontWeight: 600, fontSize: 14 }}>Oven</span>
+          <span
+            style={{ fontSize: 12.5, color: 'var(--muted-2)', marginLeft: 8 }}
+          >
+            The future of generative design © 2026
+          </span>
+        </div>
 
-            </p>
-            <p>
-            </p>
-          </div>
+        {/* Links */}
+        <div style={{ display: 'flex', gap: 24, fontSize: 13, color: 'var(--muted)' }}>
+          {FOOTER_LINKS.map((l) => (
+            <Link
+              key={l}
+              href="#"
+              style={{ color: 'var(--muted)', transition: 'color .2s' }}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = 'var(--ink)')
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = 'var(--muted)')
+              }
+            >
+              {l}
+            </Link>
+          ))}
         </div>
       </div>
-    </div>
-  );
-};
-
-export default Footer;
+    </footer>
+  )
+}

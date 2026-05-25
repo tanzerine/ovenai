@@ -1,571 +1,420 @@
-    'use client'
+'use client'
 
-    import React, { useState,useRef } from 'react'
-    import { useUser } from "@clerk/nextjs"
-    import { Button } from "@/components/ui/button"
-    import { Input } from "@/components/ui/input"
-    import { Upload as UploadIcon } from 'lucide-react';
-    import { usePointsStore } from '../store/usePointsStore'
-    import Image from 'next/image';
+import React, { useState, useRef } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { Input } from '@/components/ui/input'
+import { usePointsStore } from '../store/usePointsStore'
+import Image from 'next/image'
+import type { Metadata } from 'next'
 
+/* ── Icons ───────────────────────────────────────────── */
+const UploadIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path d="M12 16V4m0 0l-4 4m4-4l4 4M4 20h16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+const ChevronIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M4 5.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+const SparkIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M7 1.5l1.4 3.7L12 6.5l-3.6 1.3L7 11.5 5.6 7.8 2 6.5l3.6-1.3L7 1.5z" fill="currentColor" />
+  </svg>
+)
+const DownloadIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M7 1v8m0 0L4 6m3 3l3-3M2 11.5h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+const ScissorsIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <circle cx="3.5" cy="3.5" r="2" stroke="currentColor" strokeWidth="1.4" />
+    <circle cx="3.5" cy="10.5" r="2" stroke="currentColor" strokeWidth="1.4" />
+    <path d="M5 5l7 5M5 9l7-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+  </svg>
+)
+const RemixIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M11.5 4.5A4.5 4.5 0 003 5.5M2.5 9.5A4.5 4.5 0 0011 8.5M11.5 2v2.5H9M2.5 12V9.5H5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+const CloseIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
+)
+const InfoIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.4" />
+    <path d="M7 6.5v3.5M7 4.2v0.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+  </svg>
+)
 
+/* ── Field wrapper ───────────────────────────────────── */
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-2)', marginBottom: 8, letterSpacing: '-0.005em' }}>{label}</label>
+      {children}
+      {hint && (
+        <div style={{ marginTop: 8, fontSize: 12, color: 'var(--muted-2)', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+          <span style={{ marginTop: 1, color: 'var(--muted-2)' }}><InfoIcon /></span>
+          <span>{hint}</span>
+        </div>
+      )}
+    </div>
+  )
+}
 
+/* ── Select ──────────────────────────────────────────── */
+function Select({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <select value={value} onChange={e => onChange(e.target.value)} style={{ width: '100%', padding: '12px 36px 12px 14px', background: 'white', border: '1px solid var(--line)', borderRadius: 12, fontSize: 14, color: 'var(--ink)', appearance: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+        {options.map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+      <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--muted)' }}><ChevronIcon /></span>
+    </div>
+  )
+}
 
+/* ── Prompt presets ──────────────────────────────────── */
+const PRESETS = [
+  { l: 'Human', v: 'a smiling person waving' },
+  { l: 'Technology', v: 'a glossy circuit chip' },
+  { l: 'Transport', v: 'a tiny clay car' },
+  { l: 'Animal', v: 'a koala bear standing up' },
+  { l: 'Food', v: 'a strawberry ice cream cone' },
+  { l: 'Business', v: 'a leather briefcase' },
+]
 
-    /this is not important/;
-    /1--6/
+/* ── Generate page ───────────────────────────────────── */
+export default function GeneratePage() {
+  const { isSignedIn, user } = useUser()
+  const [prompt, setPrompt] = useState('')
+  const [preset, setPreset] = useState<string | null>(null)
+  const [size, setSize] = useState('1024')
+  const [format, setFormat] = useState('PNG')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isRemovingBackground, setIsRemovingBackground] = useState(false)
+  const [error, setError] = useState('')
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
+  const [removedBgImageUrl, setRemovedBgImageUrl] = useState<string | null>(null)
+  const [showOriginal, setShowOriginal] = useState(true)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { points, updatePoints } = usePointsStore()
 
-    export default function Home() {
-      const { isSignedIn, user } = useUser();
-      const [prompt, setPrompt] = useState('')
-      const [size, setSize] = useState<string>("1024")
-      const [format, setFormat] = useState<string>("PNG")  
-      const [isGenerating, setIsGenerating] = useState(false)
-      const [isRemovingBackground, setIsRemovingBackground] = useState(false)
-      const [error, setError] = useState('')
-      const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
-      const [removedBgImageUrl, setRemovedBgImageUrl] = useState<string | null>(null)
-      const [showOriginal, setShowOriginal] = useState(true)
-      const [imageFile, setImageFile] = useState<File | null>(null);
-      const [isDragging, setIsDragging] = useState(false);
-      const fileInputRef = useRef<HTMLInputElement>(null);
-      const { points, updatePoints } = usePointsStore()
+  const hasResult = !!originalImageUrl
 
-    
-    const [isLoading, setIsLoading] = useState(false);
-    const [isImageLoaded, setIsImageLoaded] = useState(false);
-    
+  /* ── Handlers (unchanged logic) ─────────────────────── */
+  const handleFile = (f: File | null) => { if (f) setImageFile(f) }
 
-    const inputRef = useRef<HTMLInputElement>(null)
-  
-
-
-
-    const handleInputFocus = () => {
-      if (!prompt.trim()) {
-        setPrompt('3d icon of ')
-        // Use setTimeout to move cursor to end of input
-        setTimeout(() => {
-          if (inputRef.current) {
-            inputRef.current.selectionStart = inputRef.current.selectionEnd = '3d icon of '.length
-          }
-        }, 0)
-      }
-    }
-
-    const PROMPT_PRESETS = [
-      {
-        label: "Human",
-        prompt: "3d icon of a scientist wearing a white robe"
-      },
-      {
-        label: "Technology",
-        prompt: "3d icon of a woman holding smartphone"
-      },
-      {
-        label: "Transport",
-        prompt: "3d icon of a green bus"
-      },
-      {
-        label: "Animal",
-        prompt: "3d icon of racoon"
-      },
-      {
-        label: "Food",
-        prompt: "3d icon of a hamburger"
-      },
-      {
-        label: "Business",
-        prompt: "3d icon of dart with arrow shot in the middle"
-      }
-    ];
-
-    const handlePresetClick = (preset: typeof PROMPT_PRESETS[0]) => {
-      setPrompt(preset.prompt);
-    };
-
-      const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
-        if (files && files.length > 0) {
-          setImageFile(files[0]);
-          console.log("File selected:", files[0].name);
-        }
-      };
-    
-      const handleDrag = (e: React.DragEvent<HTMLDivElement>, isDragging: boolean) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(isDragging);
-      };
-    
-      const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-        
-        const files = e.dataTransfer.files;
-        if (files && files.length > 0) {
-          setImageFile(files[0]);
-          console.log("File dropped:", files[0].name);
-        }
-      };
-    
-  const deleteImage = () => {
-    setImageFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    console.log("Image deleted");
-  };
-
-
-const generateIcon = async () => {
-    if (!isSignedIn) {
-      setError('Please sign in to generate icons');
-      return;
-    }
-  
-    if (!user || points === null || points < 50) {
-      setError('Not enough points. Please purchase more points.');
-      return;
-    }
-
-    // Get primary email from Clerk user
-    const userEmail = user.primaryEmailAddress?.emailAddress;
-    if (!userEmail) {
-      setError('No email address found');
-      return;
-    }
-  
-    setIsGenerating(true);
-    setIsLoading(true);
-    setIsImageLoaded(false);
-    setError('');
-    setOriginalImageUrl(null);
-    setRemovedBgImageUrl(null);
-    setShowOriginal(true);
-  
-    // Store original points for potential recovery
-    const originalPoints = points;
-    const newPoints = originalPoints - 50;
-
+  const generateIcon = async () => {
+    if (!isSignedIn) { setError('Please sign in to generate icons'); return }
+    if (!user || points === null || points < 50) { setError('Not enough points. Please purchase more points.'); return }
+    const userEmail = user.primaryEmailAddress?.emailAddress
+    if (!userEmail) { setError('No email address found'); return }
+    setIsGenerating(true); setIsLoading(true); setIsImageLoaded(false)
+    setError(''); setOriginalImageUrl(null); setRemovedBgImageUrl(null); setShowOriginal(true)
+    const originalPoints = points
     try {
-      // Use userEmail consistently for point updates
-      await updatePoints(userEmail, newPoints);
-  
-      console.log('Sending generate request with prompt:', `UNGDUNG ${prompt}`);
-      console.log('Image file:', imageFile);
-  
-      const formData = new FormData();
-      formData.append('prompt', `UNGDUNG ${prompt}`);
-      formData.append('size', size);
-      if (imageFile) {
-        formData.append('image', imageFile);
-      }
-  
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        body: formData,
-      });
-  
-      const data = await response.json();
-      console.log('Received response from generate API:', data);
-  
+      await updatePoints(userEmail, originalPoints - 50)
+      const formData = new FormData()
+      formData.append('prompt', `UNGDUNG ${prompt}`)
+      formData.append('size', size)
+      if (imageFile) formData.append('image', imageFile)
+      const response = await fetch('/api/generate', { method: 'POST', body: formData })
+      const data = await response.json()
       if (response.ok && data.success && data.predictionId) {
-        console.log('Starting poll for result with predictionId:', data.predictionId);
-        await pollForResult(data.predictionId);
+        await pollForResult(data.predictionId)
       } else {
-        // If generation fails, restore original points
-        await updatePoints(userEmail, originalPoints);
-        throw new Error(data.error || 'Failed to generate icon or get prediction ID');
+        await updatePoints(userEmail, originalPoints)
+        throw new Error(data.error || 'Failed to generate icon')
       }
     } catch (err) {
-      console.error('Error in generateIcon:', err);
-      setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`);
-      
-      // Restore original points on error using userEmail
-      try {
-        await updatePoints(userEmail, originalPoints);
-      } catch (pointsError) {
-        console.error('Failed to restore points:', pointsError);
-      }
-      // Move these to finally block instead of catch
-    } finally {
-    }
-};
-        
-  const pollForResult = async (predictionId: string) => {
-  const maxAttempts = 60
-  let attempts = 0
-
-  const checkResult = async () => {
-    if (attempts >= maxAttempts) {
-      setError('Generation timed out. Please try again.')
-      setIsLoading(false)
-      setIsGenerating(false)
-      return
-    }
-
-    attempts++
-
-    try {
-      console.log(`Checking prediction (Attempt ${attempts}):`, predictionId)
-
-      if (!predictionId) {
-        throw new Error('Prediction ID is missing')
-      }
-
-      const response = await fetch(`/api/check-prediction?id=${predictionId}`)
-      const data = await response.json()
-
-      console.log('Received check-prediction response:', data)
-
-      if (data.status === 'completed') {
-        if (Array.isArray(data.imageUrl) && data.imageUrl.length > 0) {
-          setOriginalImageUrl(data.imageUrl[0])
-          console.log('Image generation completed. URL:', data.imageUrl[0])
-          // Don't set loading states to false here - let the Image onLoadingComplete handle it
-        } else if (typeof data.imageUrl === 'string') {
-          setOriginalImageUrl(data.imageUrl)
-          console.log('Image generation completed. URL:', data.imageUrl)
-          // Don't set loading states to false here - let the Image onLoadingComplete handle it
-        } else {
-          setError('Invalid image URL format received from the API')
-          setIsLoading(false)
-          setIsGenerating(false)
-        }
-      } else if (data.status === 'failed') {
-        setError('Failed to generate icon. Please try again.')
-        setIsLoading(false)
-        setIsGenerating(false)
-      } else {
-        console.log('Generation still in progress. Checking again in 5 seconds.')
-        setTimeout(checkResult, 5000)
-      }
-    } catch (error) {
-      console.error('Error checking prediction:', error)
-      setError('Failed to check generation status. Please try again.')
-      setIsLoading(false)
-      setIsGenerating(false)
+      setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
+      try { await updatePoints(userEmail, originalPoints) } catch {}
     }
   }
 
-  await checkResult()
-}
-      
-     const removeBackground = async () => {
-    if (!originalImageUrl) {
-      setError('No image to remove background from')
-      return
-    }
-  
-    if (!user || points === null || points < 100) {
-      setError('Not enough points. Please purchase more points.')
-      return
-    }
-
-    // Get primary email from Clerk user
-    const userEmail = user.primaryEmailAddress?.emailAddress;
-    if (!userEmail) {
-      setError('No email address found');
-      return;
-    }
-  
-    setIsRemovingBackground(true)
-    setError('')
-  
-    // Store original points for potential recovery
-    const originalPoints = points;
-    const newPoints = originalPoints - 50;
-
-    try {
-      // Use userEmail consistently for point updates
-      await updatePoints(userEmail, newPoints);
-  
-      const response = await fetch('/api/remove-background', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ imageUrl: originalImageUrl }),
-      })
-  
-      const data = await response.json()
-  
-      if (response.ok && data.success) {
-        setRemovedBgImageUrl(data.removed_bg_image_url)
-        setShowOriginal(false)
-      } else {
-        // If background removal fails, restore original points
-        await updatePoints(userEmail, originalPoints);
-        throw new Error(data.error || 'Failed to remove background')
-      }
-    } catch (err) {
-      console.error('Error:', err)
-      setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
-      
-      // Restore original points on error using userEmail
+  const pollForResult = async (predictionId: string) => {
+    const maxAttempts = 60; let attempts = 0
+    const checkResult = async () => {
+      if (attempts >= maxAttempts) { setError('Generation timed out.'); setIsLoading(false); setIsGenerating(false); return }
+      attempts++
       try {
-        await updatePoints(userEmail, originalPoints);
-      } catch (pointsError) {
-        console.error('Failed to restore points:', pointsError);
-      }
-    } finally {
-      setIsRemovingBackground(false)
+        const response = await fetch(`/api/check-prediction?id=${predictionId}`)
+        const data = await response.json()
+        if (data.status === 'completed') {
+          const url = Array.isArray(data.imageUrl) ? data.imageUrl[0] : data.imageUrl
+          if (url) setOriginalImageUrl(url)
+          else { setError('Invalid image URL'); setIsLoading(false); setIsGenerating(false) }
+        } else if (data.status === 'failed') {
+          setError('Failed to generate icon. Please try again.'); setIsLoading(false); setIsGenerating(false)
+        } else { setTimeout(checkResult, 5000) }
+      } catch { setError('Failed to check generation status.'); setIsLoading(false); setIsGenerating(false) }
     }
-}
-      
-      const downloadImage = async () => {
-        if (!originalImageUrl && !removedBgImageUrl) {
-          setError('No image available to download')
-          return
-        }
-      
-        try {
-          const imageUrl = showOriginal ? originalImageUrl : removedBgImageUrl
-          if (!imageUrl) {
-            setError('Image URL is not available')
-            return
-          }
-          const response = await fetch(imageUrl)
-          const blob = await response.blob()
-          const url = window.URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.style.display = 'none'
-          a.href = url
-          a.download = showOriginal ? 'original-icon.png' : 'background-removed-icon.png'
-          document.body.appendChild(a)
-          a.click()
-          window.URL.revokeObjectURL(url)
-        } catch (err) {
-          console.error('Error downloading image:', err)
-          setError('Failed to download image')
-        }
-      }
+    await checkResult()
+  }
 
+  const removeBackground = async () => {
+    if (!originalImageUrl || !user || points === null || points < 50) return
+    const userEmail = user.primaryEmailAddress?.emailAddress
+    if (!userEmail) return
+    setIsRemovingBackground(true); setError('')
+    const originalPoints = points
+    try {
+      await updatePoints(userEmail, originalPoints - 50)
+      const response = await fetch('/api/remove-background', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl: originalImageUrl }) })
+      const data = await response.json()
+      if (response.ok && data.success) { setRemovedBgImageUrl(data.removed_bg_image_url); setShowOriginal(false) }
+      else { await updatePoints(userEmail, originalPoints); throw new Error(data.error || 'Failed') }
+    } catch (err) {
+      setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
+      try { await updatePoints(userEmail, originalPoints) } catch {}
+    } finally { setIsRemovingBackground(false) }
+  }
 
-      return (
-        <div className="w-full min-h-screen flex flex-col items-center justify-start relative p-4 md:p-0">
-        <header className="absolute inset-x-0 top-0 z-50">
-          {/* Header content */}
-        </header>
-      
-        <div className="w-full max-w-[1300px] py-10 md:py-20 flex flex-col items-center justify-center relative z-10">
-          <div className="w-full bg-white rounded-[20px] flex flex-col md:flex-row border">
-            {/* Input Section */}
-            <div className="flex-1 px-5 md:px-10 py-7 md:py-14 flex flex-col justify-start items-center">
-              <div className="w-full max-w-[590px]">
-                <div className="font-clash-grotesk text-[#0c0c0c] text-xl md:text-[26.14px] font-medium leading-tight md:leading-[30.80px] mb-5">Input</div>
-                <div className="w-full h-px bg-[#ebebeb] mb-5"></div>
-                <div className="w-full px-3 pt-3 pb-[11.29px] bg-[#f7fcff] rounded-[10px] border border-[#5b8fde]/50 mb-5">
-                  <p className="text-[#5b8fde] text-s md:text-s font-medium leading-tight">Every prompt should start with &apos;3d icon of&apos; Be sure to include it</p>
-                </div>
-                
-                <div className="mb-7">
-                <label htmlFor="prompt" className="text-black text-base font-medium leading-tight block mb-3">Prompt</label>
-                <Input
-                  id="prompt"
-                  ref={inputRef}
-                  className="w-full h-10 bg-[#bbbbbb]/20 rounded-[10px] border-[#888888]/10 text-base text-slate-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="3d icon of..."
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onFocus={handleInputFocus}
-                />
-                <p className="text-black/50 text-sm font-medium leading-tight mt-3">
-                  Prompt must start with &apos;3d icon of&apos; in order to use the model properly. Shorter prompt could enhance the quality.
-                </p>
-                </div>
- 
-               {/* Prompt Presets Section - Now separated from input */}
-               <div className="mb-7 w-full bg-[#fafafa] p-4 rounded-lg border border-[#e0e0e0]">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-black font-medium">Quick Presets</span>
-                  <span className="text-xs text-gray-500">(Click to use)</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {PROMPT_PRESETS.map((preset, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handlePresetClick(preset)}
-                      className="px-3 py-1.5 bg-white text-[#3384ff] text-sm font-medium rounded-lg 
-                                hover:bg-[#3384ff] hover:text-white transition-colors 
-                                border border-[#3384ff]/20 shadow-sm"
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            
+  const downloadImage = async () => {
+    const imageUrl = showOriginal ? originalImageUrl : removedBgImageUrl
+    if (!imageUrl) return
+    try {
+      const response = await fetch(imageUrl)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = showOriginal ? 'icon.png' : 'icon-nobg.png'
+      document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url)
+    } catch { setError('Failed to download image') }
+  }
 
-              <div className="mb-7 w-full">
-        <label htmlFor="image" className="text-black text-base font-medium leading-tight block mb-3">Image File</label>
-        <div
-          className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer relative ${
-            isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-          }`}
-          onDragEnter={(e) => handleDrag(e, true)}
-          onDragOver={(e) => handleDrag(e, true)}
-          onDragLeave={(e) => handleDrag(e, false)}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {imageFile ? (
-            <>
-              <p className="text-sm text-gray-600">{imageFile.name}</p>
-              <button
-                className="absolute top-2 right-2 px-2 py-1 bg-gray-300 text-white rounded-md hover:bg-red-600 text-xs"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteImage();
-                }}
-              >
-                Delete
-              </button>
-            </>
-          ) : (
-            <>
-              <UploadIcon className="w-8 h-8 text-gray-400 mb-2" />
-              <p className="text-sm text-gray-600">
-                Drag and drop an image here, or click to select
-              </p>
-            </>
-          )}
+  /* ── UI ──────────────────────────────────────────────── */
+  return (
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      {/* Light decorations */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/assets/lightray_right.avif" alt="" style={{ position: 'absolute', top: 0, left: 0, width: 'min(36vw, 460px)', pointerEvents: 'none', zIndex: 0 }} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/assets/lightfade_left.avif" alt="" style={{ position: 'absolute', top: 0, right: 0, width: 'min(36vw, 460px)', pointerEvents: 'none', zIndex: 0 }} />
+
+      <main style={{ position: 'relative', zIndex: 2, padding: '56px 24px 64px', maxWidth: 1240, margin: '0 auto' }}>
+        {/* Page header */}
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div className="mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--blue)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 14 }}>◆ Generate</div>
+          <h1 style={{ fontSize: 'clamp(36px, 4.4vw, 52px)', letterSpacing: '-0.03em', fontWeight: 600, lineHeight: 1.0 }}>
+            Bake a fresh <span className="serif" style={{ fontWeight: 400 }}>3D icon.</span>
+          </h1>
+          <p style={{ color: 'var(--muted)', marginTop: 12, fontSize: 15 }}>
+            Type a prompt, tweak the settings, hit Run. Most icons finish in about six seconds.
+          </p>
         </div>
-        <input
-          type="file"
-          id="image"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-          ref={fileInputRef}
-        />
-        <p className="text-black/50 text-sm font-medium leading-tight mt-3">
-          Upload an image file for image-to-image generation. Leave empty for text-to-image mode.
-        </p>
-      </div>
 
-  {/* Size Dropdown */}
-  <div className="mb-7">
-        <label htmlFor="size" className="text-black text-s font-medium leading-tight block mb-3">Size</label>
-        <div className="relative">
-          <select
-            id="size"
-            value={size}
-            onChange={(e) => setSize(e.target.value)}
-            className="w-full h-10 bg-[#bbbbbb]/20 rounded-[10px] border-[#888888]/10 appearance-none px-3 text-gray-500 text-s border focus:ring-1 focus:ring-blue-500 shadow-sm transition-colors focus:border-blue-500 outline-none"
-          >
-            <option value="1024">1024</option>
-            <option value="512">512</option>
-            <option value="256">256</option>
-          </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-        </svg>
-      </div>
-    </div>
-    <p className="text-black/50 text-sm font-medium leading-tight mt-3">
-      Size of the generated image in text-to-image mode. Only provides 256,512,1024
-    </p>
-  </div>
+        {/* Two-column panel */}
+        <div style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 28, padding: 36, boxShadow: '0 24px 60px -30px rgba(20,30,80,0.15), 0 1px 0 rgba(255,255,255,0.6) inset' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: 36 }}>
 
-
-                {/* Format Dropdown */}
-                <div className="mb-7">
-        <label htmlFor="format" className="text-black text-s font-medium leading-tight block mb-3">Format</label>
-        <div className="relative">
-          <select
-            id="format"
-            value={format}
-            onChange={(e) => setFormat(e.target.value)}
-            className="w-full h-10 bg-[#bbbbbb]/20 rounded-[10px] border-[#888888]/10 appearance-none px-3 text-gray-500 text-s border shadow-sm transition-colors focus:ring-1 focus:ring-blue-500 outline-none"
-          >
-            <option value="PNG">PNG</option>
-            <option value="JPG">JPG</option>
-            <option value="WEBP">WEBP</option>
-          </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                      </svg>
-                    </div>
-                  </div>
-                  <p className="text-black/50 text-sm font-medium leading-tight mt-3">
-                    Format of the output images.
-                  </p>
+            {/* ── Input column ─────────────────────────── */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, paddingBottom: 18, borderBottom: '1px solid var(--line)' }}>
+                <div>
+                  <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em' }}>Input</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 2 }}>Describe what you want and we&apos;ll bake it.</div>
                 </div>
-
-                <Button 
-                  className="w-full md:w-[171px] h-10 bg-[#3384ff] text-s font-bold rounded-[10px] text-white"
-                  onClick={generateIcon}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? 'Generating...' : 'Run'}
-                </Button>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--blue)', fontWeight: 500, padding: '5px 10px', background: 'var(--blue-soft)', borderRadius: 100 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--blue)', display: 'inline-block' }} />
+                  {points !== null ? `${points} pts left` : '…'}
+                </div>
               </div>
+
+              {/* Helper banner */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px', marginBottom: 22, background: 'var(--blue-soft)', border: '1px solid var(--blue-tint)', borderRadius: 12 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: 'var(--blue)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><SparkIcon /></div>
+                <div style={{ fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.5 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 2 }}>Start every prompt with "3d icon of"</div>
+                  <div style={{ color: 'var(--muted)' }}>It&apos;s how Oven recognizes the format and keeps results consistent.</div>
+                </div>
+              </div>
+
+              <Field label="Prompt" hint="Shorter prompts often render cleaner. Aim for one subject + one or two style words.">
+                <textarea
+                  rows={3}
+                  placeholder="3d icon of …"
+                  value={prompt}
+                  onChange={e => setPrompt(e.target.value)}
+                  style={{ width: '100%', padding: '12px 14px', background: 'white', border: '1px solid var(--line)', borderRadius: 12, fontSize: 13.5, resize: 'vertical', lineHeight: 1.5, fontFamily: 'Geist Mono, monospace', outline: 'none', transition: 'border-color .2s, box-shadow .2s', color: 'var(--ink)' }}
+                  onFocus={e => { e.target.style.borderColor = 'var(--blue)'; e.target.style.boxShadow = '0 0 0 4px rgba(59,130,246,0.12)' }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--line)'; e.target.style.boxShadow = 'none' }}
+                />
+              </Field>
+
+              {/* Presets */}
+              <div style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 14, padding: 16, marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>Quick presets</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--muted-2)' }}>(click to use)</span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {PRESETS.map((p, i) => {
+                    const active = preset === p.l
+                    return (
+                      <button key={i} onClick={() => { setPreset(p.l); setPrompt(`3d icon of ${p.v}`) }} style={{ padding: '6px 12px', borderRadius: 100, background: active ? 'var(--blue)' : 'white', border: `1px solid ${active ? 'var(--blue)' : 'var(--blue-tint)'}`, color: active ? 'white' : 'var(--blue)', fontSize: 12.5, fontWeight: 500, transition: 'all .15s', cursor: 'pointer', fontFamily: 'inherit' }}>
+                        {p.l}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Image upload */}
+              <Field label="Image file" hint="Upload an image for image-to-image generation. Leave empty for text-to-image mode.">
+                {!imageFile ? (
+                  <div
+                    onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={e => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files[0]) }}
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{ padding: '32px 20px', textAlign: 'center', background: isDragging ? 'var(--blue-soft)' : 'white', border: `1.5px dashed ${isDragging ? 'var(--blue)' : 'var(--line-2)'}`, borderRadius: 14, cursor: 'pointer', transition: 'background .2s, border-color .2s' }}
+                  >
+                    <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={e => handleFile(e.target.files?.[0] ?? null)} />
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--blue-soft)', color: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><UploadIcon /></div>
+                    <div style={{ fontSize: 13.5, color: 'var(--ink-2)', fontWeight: 500 }}>Drag and drop an image, or click to browse</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--muted-2)', marginTop: 4 }}>PNG, JPG · up to 10 MB</div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: 'white', border: '1px solid var(--line)', borderRadius: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden' }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--blue-soft)', color: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><UploadIcon /></div>
+                      <div>
+                        <div style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{imageFile.name}</div>
+                        <div style={{ fontSize: 11.5, color: 'var(--muted-2)' }}>{(imageFile.size / 1024).toFixed(1)} KB</div>
+                      </div>
+                    </div>
+                    <button onClick={() => setImageFile(null)} style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--bg)', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}><CloseIcon /></button>
+                  </div>
+                )}
+              </Field>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <Field label="Size" hint="256, 512, or 1024 px.">
+                  <Select value={size} onChange={setSize} options={['256', '512', '1024']} />
+                </Field>
+                <Field label="Format" hint="Output format.">
+                  <Select value={format} onChange={setFormat} options={['PNG', 'JPG', 'WEBP']} />
+                </Field>
+              </div>
+
+              {error && <p style={{ color: 'var(--bad)', fontSize: 13, marginBottom: 12 }}>{error}</p>}
+
+              <button
+                onClick={generateIcon}
+                disabled={isGenerating || !prompt.trim()}
+                style={{ marginTop: 8, width: '100%', background: isGenerating || !prompt.trim() ? 'var(--line)' : 'linear-gradient(180deg, #3B82F6, #2563EB)', color: isGenerating || !prompt.trim() ? 'var(--muted)' : 'white', padding: '14px 18px', borderRadius: 14, fontSize: 14.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: isGenerating ? 'none' : '0 6px 16px rgba(37,99,235,0.35), inset 0 1px 0 rgba(255,255,255,0.25)', border: 'none', fontFamily: 'inherit', cursor: isGenerating ? 'not-allowed' : 'pointer', transition: 'all .2s' }}
+              >
+                <SparkIcon /> {isGenerating ? 'Baking…' : 'Run · 1 credit'}
+              </button>
             </div>
 
             {/* Divider */}
-            <div className="w-full md:w-px h-px md:h-full bg-[#ebebeb] my-5 md:my-0"></div>
+            <div style={{ background: 'var(--line)' }} />
 
-       {/* Output Section */}
-       <div className="flex-1 p-5 md:p-[30px] md:py-14 flex flex-col justify-start items-start">
-      <div className="w-full pr-0 md:pr-5">
-        <h5 className="font-clash-grotesk text-[#0c0c0c] text-xl md:text-[26.47px] font-medium leading-tight md:leading-[30.80px] mb-5">Output</h5>
-        <div className="w-full h-px bg-[#ebebeb] mb-5"></div>
-        {error && <p className="text-red-500 text-s font-medium mb-5">{error}</p>}
-        {!originalImageUrl && !isLoading && (
-          <p className="text-black/50 text-s font-medium leading-tight mb-5">Press Run to see the results!</p>
-        )}
-        <div className="w-full h-[300px] md:h-[570px] flex justify-center items-center mb-5 bg-[#BBBBBB31] relative overflow-hidden">
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 border-4 border-gray-300 border-t-white rounded-full animate-spin"></div>
+            {/* ── Output column ────────────────────────── */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, paddingBottom: 18, borderBottom: '1px solid var(--line)' }}>
+                <div>
+                  <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em' }}>Output</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 2 }}>
+                    {isGenerating ? 'Baking your icon…' : hasResult ? 'Ready to download.' : 'Press Run to see the result.'}
+                  </div>
+                </div>
+                {isGenerating && (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--blue)', fontWeight: 500 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', border: '2px solid var(--blue-tint)', borderTopColor: 'var(--blue)', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+                    ~6s remaining
+                  </div>
+                )}
+              </div>
+
+              {/* Preview box */}
+              <div style={{ aspectRatio: '1', borderRadius: 16, background: hasResult ? 'white' : '#EFEFEC', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginBottom: 16 }}>
+                {hasResult && (
+                  <button
+                    onClick={() => { setIsGenerating(false); setOriginalImageUrl(null); setIsLoading(false) }}
+                    style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 100, background: 'white', color: 'var(--ink-2)', border: '1px solid var(--line)', fontSize: 12.5, fontWeight: 500, boxShadow: '0 4px 10px rgba(20,30,80,0.08)', cursor: 'pointer', fontFamily: 'inherit' }}
+                  >
+                    <RemixIcon /> Remix
+                  </button>
+                )}
+                {isLoading ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ width: 56, height: 56, margin: '0 auto 14px', borderRadius: '50%', background: 'linear-gradient(135deg, #DCE9FF, #7BB0FF)', animation: 'pulse 1.4s ease-in-out infinite', boxShadow: '0 10px 28px rgba(123,176,255,0.4)' }} />
+                    <div style={{ fontSize: 13, color: 'var(--muted)' }}>Generating…</div>
+                  </div>
+                ) : ((showOriginal && originalImageUrl) || (!showOriginal && removedBgImageUrl)) ? (
+                  <Image
+                    src={(showOriginal ? originalImageUrl : removedBgImageUrl)!}
+                    alt="Generated icon"
+                    fill
+                    style={{ objectFit: 'contain' }}
+                    className={`transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoadingComplete={() => { setIsImageLoaded(true); setIsLoading(false); setIsGenerating(false) }}
+                    onError={() => { setError('Failed to load image.'); setIsLoading(false); setIsGenerating(false) }}
+                  />
+                ) : (
+                  <div style={{ textAlign: 'center', color: 'var(--muted-2)' }}>
+                    <div style={{ width: 56, height: 56, margin: '0 auto 14px', borderRadius: '50%', background: 'white', border: '1px dashed var(--line-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted-2)' }}><SparkIcon /></div>
+                    <div style={{ fontSize: 13 }}>Press Run to see results</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action bar */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 10 }}>
+                {[
+                  { label: 'Download', icon: <DownloadIcon />, onClick: downloadImage, disabled: !hasResult },
+                  { label: 'Make it 3D', icon: <SparkIcon />, onClick: () => {}, disabled: !hasResult },
+                  { label: isRemovingBackground ? 'Removing…' : 'Remove BG', icon: <ScissorsIcon />, onClick: removeBackground, disabled: !hasResult || isRemovingBackground },
+                ].map((btn, i) => (
+                  <button
+                    key={i}
+                    onClick={btn.onClick}
+                    disabled={btn.disabled}
+                    style={{ padding: '12px 14px', borderRadius: 12, background: i === 0 && hasResult ? 'var(--ink)' : 'white', color: i === 0 && hasResult ? 'white' : hasResult ? 'var(--ink-2)' : 'var(--muted-2)', border: i === 0 ? 'none' : '1px solid var(--line)', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, cursor: btn.disabled ? 'not-allowed' : 'pointer', opacity: btn.disabled ? 0.5 : 1, fontFamily: 'inherit', transition: 'all .2s' }}
+                  >
+                    {btn.icon} {btn.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Recent renders */}
+              <div style={{ marginTop: 28 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>Recent renders</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                  {['/assets/diamond.webp', '/assets/trophy.webp', '/assets/shake.webp', '/assets/icecream.webp'].map((src, i) => (
+                    <div key={i} style={{ aspectRatio: '1', borderRadius: 12, background: 'white', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 14px rgba(20,30,80,0.08)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '' }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt="" style={{ width: '70%', height: '70%', objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(20,30,80,0.10))' }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          )}
-          {((showOriginal && originalImageUrl) || (!showOriginal && removedBgImageUrl)) && (
-            <Image 
-              src={showOriginal ? originalImageUrl! : removedBgImageUrl!}
-              alt="Generated Icon"
-              fill
-              style={{ objectFit: 'contain' }}
-              className={`max-w-full max-h-full transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
-              onLoadingComplete={() => {
-                setIsImageLoaded(true);
-                setIsLoading(false);
-                setIsGenerating(false);
-              }}
-              onError={() => {
-                setError('Failed to load the image. Please try again.');
-                console.error('Image load error. URL:', showOriginal ? originalImageUrl : removedBgImageUrl);
-                setIsLoading(false);
-                setIsGenerating(false);
-              }}
-            />
-          )}
+          </div>
         </div>
-        <div className="w-full pt-[3px] flex flex-col md:flex-row justify-center items-center gap-2.5">
-          <Button 
-            className="w-full md:w-[280px] bg-[#333333] text-white font-bold"
-            onClick={downloadImage}
-            disabled={!originalImageUrl && !removedBgImageUrl}
-          >
-            Download
-          </Button>
-          <Button 
-            className="w-full md:w-[280px] bg-[#e3e3e3] text-[#4a4a4a] font-bold"
-            onClick={removeBackground}
-            disabled={!originalImageUrl || isRemovingBackground}
-          >
-            {isRemovingBackground ? 'Removing...' : 'Remove Background'}
-          </Button>
+
+        {/* Disclaimer */}
+        <div style={{ marginTop: 64, textAlign: 'center', maxWidth: 720, margin: '64px auto 0', fontSize: 12.5, color: 'var(--muted-2)', lineHeight: 1.6 }}>
+          The information provided on this website is for general purposes only. Oven does not guarantee the accuracy or reliability of any content. Commercial availability and features may change without notice.
         </div>
-      </div>
+      </main>
     </div>
-    </div>
-    </div>
-</div>
-    );
-  }
+  )
+}
