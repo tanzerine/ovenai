@@ -128,7 +128,6 @@ export default function GeneratePage() {
   const [isGenerating3D, setIsGenerating3D] = useState(false)
   const [view3D, setView3D] = useState(false)
   const [model3DLoadProgress, setModel3DLoadProgress] = useState(0)
-  const [hoveredRender, setHoveredRender] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [toastFading, setToastFading] = useState(false)
   const toastTimers = useRef<ReturnType<typeof setTimeout>[]>([])
@@ -193,6 +192,46 @@ export default function GeneratePage() {
     el.addEventListener('load', onLoad)
     return () => { el.removeEventListener('progress', onProgress); el.removeEventListener('load', onLoad) }
   }, [view3D, modelUrl])
+
+  /* ── Resume pending op after refresh ────────────────── */
+  useEffect(() => {
+    const saved = localStorage.getItem('oven_pending_op')
+    if (!saved) return
+    let cancelled = false
+    try {
+      const op = JSON.parse(saved) as { type: string; predictionId: string; imageUrl?: string }
+      if (!op.predictionId) { localStorage.removeItem('oven_pending_op'); return }
+      if (op.imageUrl) setOriginalImageUrl(op.imageUrl)
+      if (op.type === '3d') { setIsGenerating3D(true); setModelUrl(null); setView3D(false) }
+      if (op.type === 'removebg') setIsRemovingBackground(true)
+      const poll = async () => {
+        for (let i = 0; i < 90 && !cancelled; i++) {
+          await new Promise(r => setTimeout(r, 2000))
+          if (cancelled) break
+          try {
+            const res = await fetch(`/api/check-prediction?id=${op.predictionId}`)
+            const data = await res.json()
+            if (data.status === 'completed' && data.url) {
+              localStorage.removeItem('oven_pending_op')
+              if (op.type === '3d') { setModelUrl(data.url); setIsGenerating3D(false); setView3D(true) }
+              else { setRemovedBgImageUrl(data.url); setShowOriginal(false); setIsRemovingBackground(false) }
+              return
+            }
+            if (data.status === 'failed') {
+              localStorage.removeItem('oven_pending_op')
+              setError(data.error || 'Operation failed')
+              setIsGenerating3D(false); setIsRemovingBackground(false)
+              return
+            }
+          } catch { /* keep retrying */ }
+        }
+        localStorage.removeItem('oven_pending_op')
+        setIsGenerating3D(false); setIsRemovingBackground(false)
+      }
+      poll()
+    } catch { localStorage.removeItem('oven_pending_op') }
+    return () => { cancelled = true }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Recent renders ─────────────────────────────────── */
   const addRecentRender = (url: string) => {
@@ -272,24 +311,36 @@ export default function GeneratePage() {
     if (!userEmail) return
     setIsRemovingBackground(true); setError('')
     const originalPoints = points
+    const imageUrl = originalImageUrl
     try {
       await updatePoints(userEmail, originalPoints - 50)
-      const response = await fetch('/api/remove-background', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl: originalImageUrl }) })
+      const response = await fetch('/api/remove-background', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl }) })
       const data = await response.json()
-      if (response.ok && data.success) { setRemovedBgImageUrl(data.removed_bg_image_url); setShowOriginal(false) }
-      else { await updatePoints(userEmail, originalPoints); throw new Error(data.error || 'Failed') }
+      if (response.ok && data.success && data.predictionId) {
+        localStorage.setItem('oven_pending_op', JSON.stringify({ type: 'removebg', predictionId: data.predictionId, imageUrl }))
+        await clientPoll(
+          data.predictionId,
+          () => {},
+          (url) => { localStorage.removeItem('oven_pending_op'); setRemovedBgImageUrl(url); setShowOriginal(false); setIsRemovingBackground(false) },
+          async (msg) => { localStorage.removeItem('oven_pending_op'); try { await updatePoints(userEmail, originalPoints) } catch {} setError(msg); setIsRemovingBackground(false) },
+        )
+      } else {
+        await updatePoints(userEmail, originalPoints)
+        throw new Error(data.error || 'Failed to start background removal')
+      }
     } catch (err) {
       setError(`An error occurred: ${err instanceof Error ? err.message : String(err)}`)
       try { await updatePoints(userEmail, originalPoints) } catch {}
-    } finally { setIsRemovingBackground(false) }
+      setIsRemovingBackground(false)
+    }
   }
 
   const streamFor3D = async (predictionId: string) => {
     await clientPoll(
       predictionId,
       () => {},
-      (url) => { setModelUrl(url); setIsGenerating3D(false); setView3D(true) },
-      (msg) => { setError(msg); setIsGenerating3D(false) },
+      (url) => { localStorage.removeItem('oven_pending_op'); setModelUrl(url); setIsGenerating3D(false); setView3D(true) },
+      (msg) => { localStorage.removeItem('oven_pending_op'); setError(msg); setIsGenerating3D(false) },
     )
   }
 
@@ -306,6 +357,7 @@ export default function GeneratePage() {
       })
       const data = await res.json()
       if (res.ok && data.success && data.predictionId) {
+        localStorage.setItem('oven_pending_op', JSON.stringify({ type: '3d', predictionId: data.predictionId, imageUrl: url }))
         await streamFor3D(data.predictionId)
       } else {
         throw new Error(data.error || 'Failed to start 3D generation')
@@ -616,18 +668,12 @@ export default function GeneratePage() {
                         <div
                           key={i}
                           onClick={() => { setOriginalImageUrl(src); setRemovedBgImageUrl(null); setShowOriginal(true); setIsImageLoaded(false); setModelUrl(null); setView3D(false) }}
-                          style={{ aspectRatio: '1', borderRadius: 12, background: 'white', border: `1px solid ${src === originalImageUrl ? 'var(--blue)' : 'var(--line)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s', boxShadow: src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : 'none', position: 'relative', overflow: 'hidden' }}
-                          onMouseEnter={e => { setHoveredRender(i); (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '0 6px 14px rgba(20,30,80,0.08)' }}
-                          onMouseLeave={e => { setHoveredRender(null); (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '' }}
+                          style={{ aspectRatio: '1', borderRadius: 12, background: 'white', border: `1px solid ${src === originalImageUrl ? 'var(--blue)' : 'var(--line)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s', boxShadow: src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : 'none' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '0 6px 14px rgba(20,30,80,0.08)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '' }}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={src} alt="" style={{ width: '75%', height: '75%', objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(20,30,80,0.10))' }} />
-                          {hoveredRender === i && (
-                            <button
-                              onClick={e => { e.stopPropagation(); generate3D(src) }}
-                              style={{ position: 'absolute', bottom: 5, right: 5, padding: '3px 8px', borderRadius: 100, background: '#0B0B0E', color: 'white', fontSize: 10, fontWeight: 600, border: 'none', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.04em' }}
-                            >3D</button>
-                          )}
                         </div>
                       ))
                     : Array.from({ length: 4 }).map((_, i) => (
