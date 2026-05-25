@@ -66,6 +66,22 @@ const InfoIcon = () => (
   </svg>
 )
 
+/* ── 3D model sessionStorage helpers ────────────────── */
+const MODELS_KEY = 'oven_3d_models'
+function save3DModel(imageUrl: string, glbUrl: string) {
+  try {
+    const map = JSON.parse(sessionStorage.getItem(MODELS_KEY) ?? '{}')
+    map[imageUrl] = glbUrl
+    sessionStorage.setItem(MODELS_KEY, JSON.stringify(map))
+  } catch {}
+}
+function get3DModel(imageUrl: string): string | null {
+  try {
+    const map = JSON.parse(sessionStorage.getItem(MODELS_KEY) ?? '{}')
+    return map[imageUrl] ?? null
+  } catch { return null }
+}
+
 /* ── Field wrapper ───────────────────────────────────── */
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -213,8 +229,10 @@ export default function GeneratePage() {
             const data = await res.json()
             if (data.status === 'completed' && data.url) {
               localStorage.removeItem('oven_pending_op')
-              if (op.type === '3d') { setModelUrl(data.url); setIsGenerating3D(false); setView3D(true) }
-              else { setRemovedBgImageUrl(data.url); setShowOriginal(false); setIsRemovingBackground(false) }
+              if (op.type === '3d') {
+                if (op.imageUrl) save3DModel(op.imageUrl, data.url)
+                setModelUrl(data.url); setIsGenerating3D(false); setView3D(true)
+              } else { setRemovedBgImageUrl(data.url); setShowOriginal(false); setIsRemovingBackground(false) }
               return
             }
             if (data.status === 'failed') {
@@ -335,11 +353,15 @@ export default function GeneratePage() {
     }
   }
 
-  const streamFor3D = async (predictionId: string) => {
+  const streamFor3D = async (predictionId: string, imageUrl?: string) => {
     await clientPoll(
       predictionId,
       () => {},
-      (url) => { localStorage.removeItem('oven_pending_op'); setModelUrl(url); setIsGenerating3D(false); setView3D(true) },
+      (glbUrl) => {
+        localStorage.removeItem('oven_pending_op')
+        if (imageUrl) save3DModel(imageUrl, glbUrl)
+        setModelUrl(glbUrl); setIsGenerating3D(false); setView3D(true)
+      },
       (msg) => { localStorage.removeItem('oven_pending_op'); setError(msg); setIsGenerating3D(false) },
     )
   }
@@ -358,7 +380,7 @@ export default function GeneratePage() {
       const data = await res.json()
       if (res.ok && data.success && data.predictionId) {
         localStorage.setItem('oven_pending_op', JSON.stringify({ type: '3d', predictionId: data.predictionId, imageUrl: url }))
-        await streamFor3D(data.predictionId)
+        await streamFor3D(data.predictionId, url)
       } else {
         throw new Error(data.error || 'Failed to start 3D generation')
       }
@@ -667,7 +689,11 @@ export default function GeneratePage() {
                     ? recentRenders.slice(0, 8).map((src, i) => (
                         <div
                           key={i}
-                          onClick={() => { setOriginalImageUrl(src); setRemovedBgImageUrl(null); setShowOriginal(true); setIsImageLoaded(false); setModelUrl(null); setView3D(false) }}
+                          onClick={() => {
+                            setOriginalImageUrl(src); setRemovedBgImageUrl(null); setShowOriginal(true); setIsImageLoaded(false); setView3D(false)
+                            const cached = get3DModel(src)
+                            setModelUrl(cached) // null if none, GLB url if previously generated
+                          }}
                           style={{ aspectRatio: '1', borderRadius: 12, background: 'white', border: `1px solid ${src === originalImageUrl ? 'var(--blue)' : 'var(--line)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s', boxShadow: src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : 'none' }}
                           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '0 6px 14px rgba(20,30,80,0.08)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = src === originalImageUrl ? '0 0 0 2px var(--blue-tint)' : '' }}
