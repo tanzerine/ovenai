@@ -454,7 +454,7 @@ export default function GeneratePage() {
                         </div>
                       ))
                     : Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} style={{ aspectRatio: '1', borderRadius: 12, background: 'var(--line)', border: '1px solid var(--line-2)', animation: 'pulse 1.8s ease-in-out infinite', animationDelay: `${i * 0.15}s` }} />
+                        <div key={i} style={{ aspectRatio: '1', borderRadius: 12, background: 'var(--line)', border: '1px solid var(--line-2)' }} />
                       ))
                   }
                 </div>
