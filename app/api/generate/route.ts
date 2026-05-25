@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const prompt = formData.get('prompt') as string
     const imageFile = formData.get('image') as File | null
+    const imageUrl = formData.get('imageUrl') as string | null
 
     console.log('Received prompt:', prompt)
 
@@ -35,6 +36,9 @@ export async function POST(request: NextRequest) {
       const arrayBuffer = await imageFile.arrayBuffer()
       const base64Image = Buffer.from(arrayBuffer).toString('base64')
       input.image = `data:${imageFile.type};base64,${base64Image}`
+    } else if (imageUrl) {
+      console.log('Remix image URL received:', imageUrl)
+      input.image = imageUrl
     }
 
     console.log('Creating prediction...')

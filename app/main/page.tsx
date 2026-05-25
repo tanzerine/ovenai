@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { usePointsStore } from '../store/usePointsStore'
 import Image from 'next/image'
@@ -107,6 +107,7 @@ export default function GeneratePage() {
   const [isImageLoaded, setIsImageLoaded] = useState(false)
   const [genProgress, setGenProgress] = useState(0)
   const [genStep, setGenStep] = useState('')
+  const [remixImageUrl, setRemixImageUrl] = useState<string | null>(null)
   const [recentRenders, setRecentRenders] = useState<string[]>(() => {
     if (typeof window === 'undefined') return []
     try {
@@ -117,6 +118,15 @@ export default function GeneratePage() {
   const { points, updatePoints } = usePointsStore()
 
   const hasResult = !!originalImageUrl
+
+  /* ── Read remix params on mount ─────────────────────── */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const q = params.get('q')
+    const img = params.get('img')
+    if (q) setPrompt(decodeURIComponent(q))
+    if (img) setRemixImageUrl(decodeURIComponent(img))
+  }, [])
 
   /* ── Recent renders ─────────────────────────────────── */
   const addRecentRender = (url: string) => {
@@ -145,6 +155,7 @@ export default function GeneratePage() {
       formData.append('prompt', `UNGDUNG ${prompt}`)
       formData.append('size', size)
       if (imageFile) formData.append('image', imageFile)
+      else if (remixImageUrl) formData.append('imageUrl', remixImageUrl)
       const response = await fetch('/api/generate', { method: 'POST', body: formData })
       const data = await response.json()
       if (response.ok && data.success && data.predictionId) {
@@ -307,9 +318,21 @@ export default function GeneratePage() {
                 </div>
               </div>
 
-              {/* Image upload */}
-              <Field label="Image file" hint="Upload an image for image-to-image generation. Leave empty for text-to-image mode.">
-                {!imageFile ? (
+              {/* Image guidance */}
+              <Field label="Guidance image" hint="Used as img2img input. Leave empty for text-only generation.">
+                {remixImageUrl && !imageFile ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--blue-soft)', border: '1px solid var(--blue-tint)', borderRadius: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={remixImageUrl} alt="Remix source" style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--blue-tint)' }} />
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>Remix source</div>
+                        <div style={{ fontSize: 11.5, color: 'var(--blue)' }}>Used as image guidance</div>
+                      </div>
+                    </div>
+                    <button onClick={() => setRemixImageUrl(null)} style={{ width: 28, height: 28, borderRadius: '50%', background: 'white', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--line)', cursor: 'pointer' }}><CloseIcon /></button>
+                  </div>
+                ) : !imageFile ? (
                   <div
                     onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
                     onDragLeave={() => setIsDragging(false)}
@@ -380,7 +403,12 @@ export default function GeneratePage() {
               <div style={{ aspectRatio: '1', borderRadius: 16, background: hasResult ? 'white' : '#EFEFEC', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginBottom: 16 }}>
                 {hasResult && (
                   <button
-                    onClick={() => { setIsGenerating(false); setOriginalImageUrl(null); setIsLoading(false) }}
+                    onClick={() => {
+                      const p = new URLSearchParams()
+                      if (prompt) p.set('q', encodeURIComponent(prompt))
+                      if (originalImageUrl) p.set('img', encodeURIComponent(originalImageUrl))
+                      window.open(`/main?${p.toString()}`, '_blank')
+                    }}
                     style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 100, background: 'white', color: 'var(--ink-2)', border: '1px solid var(--line)', fontSize: 12.5, fontWeight: 500, boxShadow: '0 4px 10px rgba(20,30,80,0.08)', cursor: 'pointer', fontFamily: 'inherit' }}
                   >
                     <RemixIcon /> Remix
