@@ -5,17 +5,6 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 })
 
-interface GenerateInput {
-  prompt: string;
-  output_format: string;
-  width: number;
-  height: number;
-  num_inference_steps: number;
-  image?: string;
-  prompt_strength?: number;
-  guidance_scale?: number;
-}
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -23,52 +12,48 @@ export async function POST(request: NextRequest) {
     const imageFile = formData.get('image') as File | null
     const imageUrl = formData.get('imageUrl') as string | null
 
-    console.log('Received prompt:', prompt)
+    let prediction
 
-    const input: GenerateInput = {
-      prompt,
-      output_format: "png",
-      width: 1024,  // Always set to 1024
-      height: 1024, // Always set to 1024
-      num_inference_steps: 28, // Increased for better quality
+    if (imageFile || imageUrl) {
+      // Remix / img2img → nano-banana-pro follows prompts faithfully
+      const imageInputs: (string | Blob)[] = imageFile
+        ? [new Blob([await imageFile.arrayBuffer()], { type: imageFile.type })]
+        : [imageUrl!]
+
+      prediction = await replicate.predictions.create({
+        model: "google/nano-banana-pro",
+        input: {
+          prompt,
+          image_input: imageInputs,
+          aspect_ratio: "1:1",
+          resolution: "1K",
+          output_format: "png",
+        }
+      })
+    } else {
+      // Text-to-image → fine-tuned UNGDUNG 3D icon model
+      prediction = await replicate.predictions.create({
+        version: "c2cffd3b2c9004cf28cb9600940eb4c5ee7423af7d242f95f2ae0229eac62362",
+        input: {
+          prompt: `UNGDUNG ${prompt}`,
+          output_format: "png",
+          width: 1024,
+          height: 1024,
+          num_inference_steps: 28,
+        }
+      })
     }
 
-    if (imageFile) {
-      console.log('Image file received:', imageFile.name)
-      const arrayBuffer = await imageFile.arrayBuffer()
-      const base64Image = Buffer.from(arrayBuffer).toString('base64')
-      input.image = `data:${imageFile.type};base64,${base64Image}`
-      input.prompt_strength = 0.8
-    } else if (imageUrl) {
-      console.log('Remix image URL received:', imageUrl)
-      input.image = imageUrl
-      input.prompt_strength = 0.9   // allow significant changes (color, style)
-      input.guidance_scale = 9      // strongly enforce prompt instructions
-    }
-
-    console.log('Creating prediction...')
-    const prediction = await replicate.predictions.create({
-      version: "c2cffd3b2c9004cf28cb9600940eb4c5ee7423af7d242f95f2ae0229eac62362",
-      input
-    })
-
-    console.log('Prediction created:', prediction)
-
-    if (!prediction || !prediction.id) {
+    if (!prediction?.id) {
       throw new Error("Failed to create prediction")
     }
 
-    console.log('Prediction ID:', prediction.id)
-
-    return NextResponse.json({ 
-      success: true, 
-      predictionId: prediction.id
-    })
+    return NextResponse.json({ success: true, predictionId: prediction.id })
   } catch (error) {
     console.error("Error in generate API:", error)
-    return NextResponse.json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'An unknown error occurred' 
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
     }, { status: 500 })
   }
 }

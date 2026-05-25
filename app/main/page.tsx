@@ -152,7 +152,7 @@ export default function GeneratePage() {
     try {
       await updatePoints(userEmail, originalPoints - 50)
       const formData = new FormData()
-      formData.append('prompt', `UNGDUNG ${prompt}`)
+      formData.append('prompt', prompt)
       formData.append('size', size)
       if (imageFile) formData.append('image', imageFile)
       else if (remixImageUrl) formData.append('imageUrl', remixImageUrl)
