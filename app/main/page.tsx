@@ -271,8 +271,8 @@ export default function GeneratePage() {
       const formData = new FormData()
       formData.append('prompt', prompt)
       formData.append('size', size)
-      if (imageFile) formData.append('image', imageFile)
-      else if (remixImageUrl) formData.append('imageUrl', remixImageUrl)
+      if (imageFile) { formData.append('image', imageFile); showToast('This may take 3~5 min, please do not close the browser') }
+      else if (remixImageUrl) { formData.append('imageUrl', remixImageUrl); showToast('This may take 3~5 min, please do not close the browser') }
       const response = await fetch('/api/generate', { method: 'POST', body: formData })
       const data = await response.json()
       if (response.ok && data.success && data.predictionId) {
@@ -578,7 +578,6 @@ export default function GeneratePage() {
                 {hasResult && !view3D && (
                   <button
                     onClick={() => {
-                      showToast('This may take 3~5 min, please do not close the browser')
                       const p = new URLSearchParams()
                       if (prompt) p.set('q', prompt)
                       if (originalImageUrl) p.set('img', originalImageUrl)
