@@ -46,7 +46,7 @@
 html, body {
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--font-geist), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: 'ss01' on, 'cv11' on;
 }
@@ -64,6 +64,10 @@ body { overflow-x: hidden; }
 
 .mono {
   font-family: var(--font-geist-mono), 'Courier New', monospace;
+}
+
+.sans {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 /* ── Animations ───────────────────────────────────────── */
