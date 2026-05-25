@@ -223,7 +223,10 @@ function UseCases() {
     <section style={{ padding: '0 24px 100px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', borderRadius: 28, background: 'linear-gradient(180deg, #0A1430 0%, #131F45 100%)', padding: '64px 40px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(50% 50% at 50% 0%, rgba(123,176,255,0.18), transparent 70%)' }} />
-        <div style={{ position: 'absolute', top: -28, left: '50%', transform: 'translateX(-50%)', width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle at 30% 30%, #7BB0FF, #3B82F6 60%, #1B2A55 100%)', boxShadow: '0 0 60px rgba(123,176,255,0.5), inset -8px -8px 16px rgba(0,0,0,0.3)' }} />
+        <div style={{ position: 'absolute', top: -36, left: '50%', transform: 'translateX(-50%)', width: 72, height: 72, borderRadius: '50%', background: '#0A1430', border: '2px solid rgba(123,176,255,0.3)', boxShadow: '0 0 40px rgba(123,176,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/logo.avif" alt="Oven AI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
 
         <div style={{ position: 'relative', textAlign: 'center', marginBottom: 56, marginTop: 36 }}>
           <div className="mono" style={{ display: 'inline-block', fontSize: 11, color: 'var(--blue-2)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 14 }}>◆ Use cases</div>
