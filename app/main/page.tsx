@@ -2,10 +2,8 @@
 
 import React, { useState, useRef } from 'react'
 import { useUser } from '@clerk/nextjs'
-import { Input } from '@/components/ui/input'
 import { usePointsStore } from '../store/usePointsStore'
 import Image from 'next/image'
-import type { Metadata } from 'next'
 
 /* ── Icons ───────────────────────────────────────────── */
 const UploadIcon = () => (
@@ -236,7 +234,7 @@ export default function GeneratePage() {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px', marginBottom: 22, background: 'var(--blue-soft)', border: '1px solid var(--blue-tint)', borderRadius: 12 }}>
                 <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: 'var(--blue)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><SparkIcon /></div>
                 <div style={{ fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.5 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 2 }}>Start every prompt with "3d icon of"</div>
+                  <div style={{ fontWeight: 600, marginBottom: 2 }}>Start every prompt with &ldquo;3d icon of&rdquo;</div>
                   <div style={{ color: 'var(--muted)' }}>It&apos;s how Oven recognizes the format and keeps results consistent.</div>
                 </div>
               </div>

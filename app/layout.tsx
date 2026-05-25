@@ -1,9 +1,20 @@
 import type { Metadata } from 'next'
+import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
 import './globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
 import MainLayout from '@/components/MainLayout'
 import { Analytics } from '@vercel/analytics/react'
 import Script from 'next/script'
+
+const geist = Geist({ subsets: ['latin'], variable: '--font-geist', display: 'swap' })
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono', display: 'swap' })
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-instrument-serif',
+  display: 'swap',
+})
 
 const BASE_URL = 'https://www.oveners.com'
 
@@ -109,16 +120,8 @@ const jsonLd = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" className={`${geist.variable} ${geistMono.variable} ${instrumentSerif.variable}`}>
         <head>
-          {/* Google Fonts — Geist, Instrument Serif, Geist Mono */}
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link
-            href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap"
-            rel="stylesheet"
-          />
-
           {/* Google Analytics */}
           <Script
             strategy="afterInteractive"
