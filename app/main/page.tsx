@@ -124,8 +124,8 @@ export default function GeneratePage() {
     const params = new URLSearchParams(window.location.search)
     const q = params.get('q')
     const img = params.get('img')
-    if (q) setPrompt(decodeURIComponent(q))
-    if (img) setRemixImageUrl(decodeURIComponent(img))
+    if (q) setPrompt(q)
+    if (img) setRemixImageUrl(img)
   }, [])
 
   /* ── Recent renders ─────────────────────────────────── */
@@ -405,9 +405,15 @@ export default function GeneratePage() {
                   <button
                     onClick={() => {
                       const p = new URLSearchParams()
-                      if (prompt) p.set('q', encodeURIComponent(prompt))
-                      if (originalImageUrl) p.set('img', encodeURIComponent(originalImageUrl))
-                      window.open(`/main?${p.toString()}`, '_blank')
+                      if (prompt) p.set('q', prompt)
+                      if (originalImageUrl) p.set('img', originalImageUrl)
+                      const a = document.createElement('a')
+                      a.href = `/main?${p.toString()}`
+                      a.target = '_blank'
+                      a.rel = 'noopener noreferrer'
+                      document.body.appendChild(a)
+                      a.click()
+                      document.body.removeChild(a)
                     }}
                     style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 100, background: 'white', color: 'var(--ink-2)', border: '1px solid var(--line)', fontSize: 12.5, fontWeight: 500, boxShadow: '0 4px 10px rgba(20,30,80,0.08)', cursor: 'pointer', fontFamily: 'inherit' }}
                   >

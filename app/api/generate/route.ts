@@ -12,6 +12,7 @@ interface GenerateInput {
   height: number;
   num_inference_steps: number;
   image?: string;
+  prompt_strength?: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -36,9 +37,11 @@ export async function POST(request: NextRequest) {
       const arrayBuffer = await imageFile.arrayBuffer()
       const base64Image = Buffer.from(arrayBuffer).toString('base64')
       input.image = `data:${imageFile.type};base64,${base64Image}`
+      input.prompt_strength = 0.8
     } else if (imageUrl) {
       console.log('Remix image URL received:', imageUrl)
       input.image = imageUrl
+      input.prompt_strength = 0.8
     }
 
     console.log('Creating prediction...')
