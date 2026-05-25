@@ -60,9 +60,9 @@ export default function BaseNavbar() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo.png"
+              src="/assets/logo.avif"
               alt="Oven AI"
-              style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover' }}
+              style={{ width: 32, height: 32, borderRadius: 10, objectFit: 'cover' }}
             />
             <span
               style={{
