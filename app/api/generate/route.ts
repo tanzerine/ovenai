@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
     } else if (imageUrl) {
       console.log('Remix image URL received:', imageUrl)
       input.image = imageUrl
-      input.prompt_strength = 0.65  // preserve structure
-      input.guidance_scale = 7      // force prompt (color/style changes) to stick
+      input.prompt_strength = 0.9   // allow significant changes (color, style)
+      input.guidance_scale = 9      // strongly enforce prompt instructions
     }
 
     console.log('Creating prediction...')

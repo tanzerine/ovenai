@@ -391,12 +391,6 @@ export default function GeneratePage() {
                     {isGenerating ? 'Baking your icon…' : hasResult ? 'Ready to download.' : 'Press Run to see the result.'}
                   </div>
                 </div>
-                {isGenerating && (
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--blue)', fontWeight: 500 }}>
-                    <span style={{ width: 10, height: 10, borderRadius: '50%', border: '2px solid var(--blue-tint)', borderTopColor: 'var(--blue)', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
-                    ~6s remaining
-                  </div>
-                )}
               </div>
 
               {/* Preview box */}
