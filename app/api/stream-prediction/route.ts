@@ -7,7 +7,7 @@ const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
 // e.g. " 42%|████▎     | 12/28 [00:02<00:02,  6.1it/s]"
 function parseProgress(logs: string | null): number {
   if (!logs) return 0
-  const matches = [...logs.matchAll(/(\d+)%\|/g)]
+  const matches = Array.from(logs.matchAll(/(\d+)%\|/g))
   return matches.length ? parseInt(matches[matches.length - 1][1]) : 0
 }
 
