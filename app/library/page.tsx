@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 /* ── SVG icons ──────────────────────────────────────── */
@@ -597,11 +598,19 @@ function LibraryFooter() {
 }
 
 /* ── Page ───────────────────────────────────────────── */
-export default function LibraryPage() {
+function LibraryInner() {
   const [search, setSearch] = useState('')
   const [pack, setPack] = useState<PackId>('all')
   const [category, setCategory] = useState('All')
   const [opened, setOpened] = useState<CatalogueItem | null>(null)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const src = searchParams.get('open')
+    if (!src) return
+    const match = CATALOGUE.find(it => it.src === src)
+    if (match) setOpened(match)
+  }, [searchParams])
 
   return (
     <>
@@ -624,5 +633,13 @@ export default function LibraryPage() {
         <Drawer item={opened} onClose={() => setOpened(null)} />
       </div>
     </>
+  )
+}
+
+export default function LibraryPage() {
+  return (
+    <Suspense>
+      <LibraryInner />
+    </Suspense>
   )
 }

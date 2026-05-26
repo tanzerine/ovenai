@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 /* ── Tiny icon components ─────────────────────────────── */
 const ArrowIcon = () => (
@@ -164,6 +165,7 @@ function openRemix(src: string, name: string) {
 
 function IconGrid() {
   const [hover, setHover] = useState<number | null>(null)
+  const router = useRouter()
   return (
     <section style={{ padding: '0 24px 80px', position: 'relative' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
@@ -173,6 +175,7 @@ function IconGrid() {
               key={i}
               onMouseEnter={() => setHover(i)}
               onMouseLeave={() => setHover(null)}
+              onClick={() => router.push(`/library?open=${encodeURIComponent(it.src)}`)}
               style={{ aspectRatio: '1', background: 'white', border: '1px solid var(--line)', borderRadius: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: 14, position: 'relative', overflow: 'hidden', transition: 'transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, border-color .25s', transform: hover === i ? 'translateY(-6px)' : 'translateY(0)', boxShadow: hover === i ? '0 16px 32px rgba(20,30,80,0.12), 0 2px 6px rgba(20,30,80,0.05)' : '0 1px 2px rgba(20,30,80,0.03)', cursor: 'pointer' }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
