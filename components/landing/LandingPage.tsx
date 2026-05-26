@@ -147,6 +147,21 @@ const GRID_ICONS = [
   { src: '/assets/cap.webp', n: 'keycap' },
 ]
 
+const RemixIconSvg = () => (
+  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+    <path d="M7.5 1l2 1.5L7.5 4M9.5 2.5H4.5a2 2 0 000 4H5M3.5 10l-2-1.5L3.5 7M1.5 8.5H6.5a2 2 0 000-4H6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
+function openRemix(src: string, name: string) {
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const absoluteSrc = src.startsWith('http') ? src : `${origin}${src}`
+  const params = new URLSearchParams()
+  params.set('img', absoluteSrc)
+  params.set('q', name)
+  window.open(`/main?${params.toString()}`, '_blank')
+}
+
 function IconGrid() {
   const [hover, setHover] = useState<number | null>(null)
   return (
@@ -158,11 +173,18 @@ function IconGrid() {
               key={i}
               onMouseEnter={() => setHover(i)}
               onMouseLeave={() => setHover(null)}
-              style={{ aspectRatio: '1', background: 'white', border: '1px solid var(--line)', borderRadius: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: 14, position: 'relative', transition: 'transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, border-color .25s', transform: hover === i ? 'translateY(-6px)' : 'translateY(0)', boxShadow: hover === i ? '0 16px 32px rgba(20,30,80,0.12), 0 2px 6px rgba(20,30,80,0.05)' : '0 1px 2px rgba(20,30,80,0.03)', cursor: 'pointer' }}
+              style={{ aspectRatio: '1', background: 'white', border: '1px solid var(--line)', borderRadius: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: 14, position: 'relative', overflow: 'hidden', transition: 'transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, border-color .25s', transform: hover === i ? 'translateY(-6px)' : 'translateY(0)', boxShadow: hover === i ? '0 16px 32px rgba(20,30,80,0.12), 0 2px 6px rgba(20,30,80,0.05)' : '0 1px 2px rgba(20,30,80,0.03)', cursor: 'pointer' }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={it.src} alt={it.n} style={{ width: '72%', height: '72%', objectFit: 'contain', marginTop: 6, filter: 'drop-shadow(0 8px 12px rgba(20,30,80,0.12))', transition: 'transform .3s', transform: hover === i ? 'scale(1.08) rotate(-3deg)' : 'scale(1)' }} />
               <div className="mono" style={{ fontSize: 10, color: 'var(--muted-2)', textTransform: 'lowercase', letterSpacing: '0.06em' }}>{it.n}</div>
+              {/* Remix button — appears on hover */}
+              <button
+                onClick={e => { e.stopPropagation(); openRemix(it.src, it.n) }}
+                style={{ position: 'absolute', bottom: 10, left: '50%', transform: `translateX(-50%) translateY(${hover === i ? 0 : 8}px)`, opacity: hover === i ? 1 : 0, transition: 'opacity .2s, transform .2s', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 100, background: 'rgba(11,11,14,0.88)', color: 'white', fontSize: 11, fontWeight: 600, border: 'none', cursor: 'pointer', backdropFilter: 'blur(8px)', whiteSpace: 'nowrap', pointerEvents: hover === i ? 'auto' : 'none' }}
+              >
+                <RemixIconSvg /> Remix
+              </button>
             </div>
           ))}
         </div>

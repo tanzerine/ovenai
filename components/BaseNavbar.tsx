@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 
 const NAV_LINKS = [
   { label: 'Generate', href: '/main' },
+  { label: 'Library', href: '/library' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Blog', href: '/blog' },
   { label: 'Feedback', href: '/feedback' },
@@ -86,7 +87,7 @@ export default function BaseNavbar() {
             className="hidden md:flex"
           >
             {NAV_LINKS.map(({ label, href }) => {
-              const active = pathname === href || (href === '/main' && pathname?.startsWith('/main'))
+              const active = pathname === href || (href === '/main' && pathname?.startsWith('/main')) || (href === '/library' && pathname?.startsWith('/library'))
               return (
                 <Link
                   key={label}
