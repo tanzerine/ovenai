@@ -183,7 +183,7 @@ export default function PricingContent() {
 
         {/* Tier cards */}
         <section style={{ padding: '0 24px 80px' }}>
-          <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div className="m-pricing-cards" style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
             {TIERS.map((t, i) => (
               <div key={i} style={{ background: t.dark ? 'var(--ink)' : 'white', color: t.dark ? 'white' : 'var(--ink)', border: t.dark ? 'none' : '1px solid var(--line)', borderRadius: 24, padding: '32px 28px 28px', position: 'relative', boxShadow: t.dark ? '0 24px 60px -20px rgba(11,11,14,0.5)' : '0 1px 2px rgba(20,30,80,0.03)', display: 'flex', flexDirection: 'column' }}>
                 {t.popular && (
@@ -218,7 +218,7 @@ export default function PricingContent() {
         </section>
 
         {/* Feature matrix */}
-        <section style={{ padding: '0 24px 100px' }}>
+        <section className="m-hide" style={{ padding: '0 24px 100px' }}>
           <div style={{ maxWidth: 1100, margin: '0 auto' }}>
             <div style={{ textAlign: 'center', marginBottom: 36 }}>
               <h2 style={{ fontSize: 'clamp(28px, 3.4vw, 40px)', letterSpacing: '-0.03em', fontWeight: 600, lineHeight: 1.05 }}>
@@ -257,7 +257,7 @@ export default function PricingContent() {
 
         {/* Enterprise CTA */}
         <section style={{ padding: '0 24px 100px' }}>
-          <div style={{ maxWidth: 1100, margin: '0 auto', borderRadius: 28, background: 'linear-gradient(180deg, #0A1430 0%, #1B2A55 100%)', padding: '56px 48px', position: 'relative', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 40, alignItems: 'center' }}>
+          <div className="m-2col" style={{ maxWidth: 1100, margin: '0 auto', borderRadius: 28, background: 'linear-gradient(180deg, #0A1430 0%, #1B2A55 100%)', padding: '56px 48px', position: 'relative', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 40, alignItems: 'center' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(60% 80% at 100% 50%, rgba(123,176,255,0.22), transparent 70%)' }} />
             <div style={{ position: 'relative' }}>
               <div className="mono" style={{ fontSize: 11, color: 'var(--blue-2)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 14 }}>◆ Enterprise</div>

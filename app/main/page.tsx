@@ -418,7 +418,7 @@ export default function GeneratePage() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/assets/lightfade_left.avif" alt="" style={{ position: 'absolute', top: 0, right: 0, width: 'min(36vw, 460px)', pointerEvents: 'none', zIndex: 0 }} />
 
-      <main style={{ position: 'relative', zIndex: 2, padding: '56px 24px 64px', maxWidth: 1100, margin: '0 auto' }}>
+      <main className="m-main-pad" style={{ position: 'relative', zIndex: 2, padding: '56px 24px 64px', maxWidth: 1100, margin: '0 auto' }}>
         {/* Page header */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div className="mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--blue)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 14 }}>◆ Generate</div>
@@ -431,8 +431,8 @@ export default function GeneratePage() {
         </div>
 
         {/* Two-column panel */}
-        <div style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 28, padding: 36, boxShadow: '0 24px 60px -30px rgba(20,30,80,0.15), 0 1px 0 rgba(255,255,255,0.6) inset' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: 36 }}>
+        <div className="m-card-outer" style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 28, padding: 36, boxShadow: '0 24px 60px -30px rgba(20,30,80,0.15), 0 1px 0 rgba(255,255,255,0.6) inset' }}>
+          <div className="m-generate-panel" style={{ display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: 36 }}>
 
             {/* ── Input column ─────────────────────────── */}
             <div>
@@ -548,7 +548,7 @@ export default function GeneratePage() {
             </div>
 
             {/* Divider */}
-            <div style={{ background: 'var(--line)' }} />
+            <div className="m-generate-divider" style={{ background: 'var(--line)' }} />
 
             {/* ── Output column ────────────────────────── */}
             <div>
@@ -656,7 +656,7 @@ export default function GeneratePage() {
               </div>
 
               {/* Action bar */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 10 }}>
+              <div className="m-action-btns" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 10 }}>
                 {[
                   { label: 'Download', icon: <DownloadIcon />, onClick: view3D && modelUrl ? downloadGlb : downloadImage, disabled: !hasResult },
                   { label: isGenerating3D ? 'Generating…' : modelUrl ? (view3D ? '← Image' : '3D View') : 'Make it 3D', icon: <SparkIcon />, onClick: modelUrl ? () => setView3D(v => !v) : () => generate3D(), disabled: !hasResult || isGenerating3D },
@@ -676,7 +676,7 @@ export default function GeneratePage() {
               {/* Recent renders */}
               <div style={{ marginTop: 28 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>Recent renders</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                <div className="m-recent-renders" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
                   {recentRenders.length > 0
                     ? recentRenders.slice(0, 8).map((src, i) => (
                         <div

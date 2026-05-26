@@ -61,7 +61,7 @@ export default function BlogContent() {
         {/* Featured post */}
         <section style={{ padding: '0 24px 56px' }}>
           <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-            <Link href="#" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', background: 'white', border: '1px solid var(--line)', borderRadius: 28, overflow: 'hidden', boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 24px rgba(20,30,80,0.04)', textDecoration: 'none', color: 'inherit' }}>
+            <Link href="#" className="m-blog-featured" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', background: 'white', border: '1px solid var(--line)', borderRadius: 28, overflow: 'hidden', boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 24px rgba(20,30,80,0.04)', textDecoration: 'none', color: 'inherit' }}>
               <div style={{ background: featured.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48, minHeight: 420, position: 'relative' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={featured.cover} alt="" style={{ width: '60%', maxWidth: 280, objectFit: 'contain', filter: 'drop-shadow(0 16px 32px rgba(20,30,80,0.18))' }} />
@@ -111,7 +111,7 @@ export default function BlogContent() {
 
             {/* Grid */}
             {rest.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+              <div className="m-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
                 {rest.map((p, i) => (
                   <Link key={i} href="#" style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .25s, box-shadow .25s', textDecoration: 'none', color: 'inherit' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 32px rgba(20,30,80,0.08)' }}

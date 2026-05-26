@@ -48,15 +48,16 @@ const CubeIcon = () => (
 
 /* ── FloatingIcon ─────────────────────────────────────── */
 function FloatingIcon({
-  src, size = 72, rotate = 0, style = {}, delay = 0, fade = false,
+  src, size = 72, rotate = 0, style = {}, delay = 0, fade = false, className = '',
 }: {
-  src: string; size?: number; rotate?: number; style?: React.CSSProperties; delay?: number; fade?: boolean
+  src: string; size?: number; rotate?: number; style?: React.CSSProperties; delay?: number; fade?: boolean; className?: string
 }) {
   const fadeMask = fade
     ? { WebkitMaskImage: 'linear-gradient(to bottom, black 35%, transparent 95%)', maskImage: 'linear-gradient(to bottom, black 35%, transparent 95%)' }
     : {}
   return (
     <div
+      className={className}
       style={{
         width: size, height: size, position: 'relative',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -77,7 +78,7 @@ function FloatingIcon({
 function Hero() {
   const [prompt, setPrompt] = useState('')
   return (
-    <section style={{ position: 'relative', padding: '120px 24px 80px', overflow: 'hidden' }}>
+    <section className="m-hero-section" style={{ position: 'relative', padding: '120px 24px 80px', overflow: 'hidden' }}>
       {/* Background decorations */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/assets/grid_bg.svg" alt="" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 'auto', opacity: 0.5, pointerEvents: 'none', zIndex: 0 }} />
@@ -87,10 +88,10 @@ function Hero() {
       <img src="/assets/lightfade_left.avif" alt="" style={{ position: 'absolute', top: 0, right: 0, width: 'min(36vw, 460px)', pointerEvents: 'none', zIndex: 0 }} />
 
       {/* Floating icons */}
-      <FloatingIcon src="/assets/house.avif" size={170} rotate={-8} delay={0} style={{ position: 'absolute', top: 100, left: '-2%', zIndex: 1 }} />
-      <FloatingIcon src="/assets/girl.avif" size={180} rotate={6} delay={1.2} fade style={{ position: 'absolute', top: 280, left: '-4%', zIndex: 1 }} />
-      <FloatingIcon src="/assets/smile.webp" size={150} rotate={8} delay={0.6} style={{ position: 'absolute', top: 100, right: '-2%', zIndex: 1 }} />
-      <FloatingIcon src="/assets/cap.webp" size={130} rotate={-12} delay={1.8} fade style={{ position: 'absolute', top: 280, right: '0%', zIndex: 1 }} />
+      <FloatingIcon src="/assets/house.avif" size={170} rotate={-8} delay={0} style={{ position: 'absolute', top: 100, left: '-2%', zIndex: 1 }} className="m-hide" />
+      <FloatingIcon src="/assets/girl.avif" size={180} rotate={6} delay={1.2} fade style={{ position: 'absolute', top: 280, left: '-4%', zIndex: 1 }} className="m-hide" />
+      <FloatingIcon src="/assets/smile.webp" size={150} rotate={8} delay={0.6} style={{ position: 'absolute', top: 100, right: '-2%', zIndex: 1 }} className="m-hide" />
+      <FloatingIcon src="/assets/cap.webp" size={130} rotate={-12} delay={1.8} fade style={{ position: 'absolute', top: 280, right: '0%', zIndex: 1 }} className="m-hide" />
 
       <div style={{ position: 'relative', maxWidth: 880, margin: '0 auto', textAlign: 'center', zIndex: 2 }}>
         {/* Eyebrow */}
@@ -169,7 +170,7 @@ function IconGrid() {
   return (
     <section style={{ padding: '0 24px 80px', position: 'relative' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14 }}>
+        <div className="m-icon-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14 }}>
           {GRID_ICONS.map((it, i) => (
             <div
               key={i}
@@ -205,7 +206,7 @@ function IconGrid() {
 function Stats() {
   return (
     <section style={{ padding: '0 24px 100px' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto', borderRadius: 28, background: 'var(--blue)', padding: '56px 48px', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 60px -20px rgba(59,130,246,0.45), inset 0 1px 0 rgba(255,255,255,0.25)' }}>
+      <div className="m-inner-pad" style={{ maxWidth: 1100, margin: '0 auto', borderRadius: 28, background: 'var(--blue)', padding: '56px 48px', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 60px -20px rgba(59,130,246,0.45), inset 0 1px 0 rgba(255,255,255,0.25)' }}>
         <div style={{ position: 'absolute', top: -120, left: -80, width: 360, height: 360, background: 'radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -120, right: -80, width: 360, height: 360, background: 'radial-gradient(circle, rgba(123,176,255,0.4), transparent 70%)', pointerEvents: 'none' }} />
 
@@ -219,7 +220,7 @@ function Stats() {
           </h2>
         </div>
 
-        <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0 }}>
+        <div className="m-stats-inner" style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0 }}>
           {[
             { n: '898K+', l: 'icons baked' },
             { n: '12,540', l: 'happy users' },
@@ -262,7 +263,7 @@ function UseCases() {
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14.5, marginTop: 14 }}>From solo designers to ten-person product teams — here&apos;s how Oven shows up at work.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+        <div className="m-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
           {cases.map((c, i) => (
             <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: 28, backdropFilter: 'blur(8px)' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -338,7 +339,7 @@ function Features() {
             Every render is finished, brand-ready, and exportable to wherever your team works.
           </p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+        <div className="m-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {items.map((it, i) => (
             <div key={i} style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 24, padding: '40px 32px 36px', textAlign: 'center' }}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
@@ -377,7 +378,7 @@ function PricingPreview() {
           </h2>
           <p style={{ color: 'var(--muted)', marginTop: 14, fontSize: 15 }}>Pay as you bake. Cancel any time.</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        <div className="m-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {tiers.map((t, i) => (
             <div key={i} style={{ background: t.highlight ? 'var(--ink)' : 'white', color: t.highlight ? 'white' : 'var(--ink)', border: t.highlight ? 'none' : '1px solid var(--line)', borderRadius: 24, padding: 32, position: 'relative', boxShadow: t.highlight ? '0 24px 60px -20px rgba(11,11,14,0.5)' : '0 1px 2px rgba(20,30,80,0.03)' }}>
               {t.highlight && (
@@ -427,7 +428,7 @@ function Compare() {
             Why teams pick <span className="serif" style={{ fontWeight: 400 }}>Oven.</span>
           </h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="m-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <div style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 22, padding: 28 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--line)' }}>
               <div style={{ width: 24, height: 24, borderRadius: 8, background: '#F4F4EE', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}><CrossIcon /></div>
@@ -524,7 +525,7 @@ function Testimonials() {
           </h2>
           <p style={{ color: 'var(--muted)', marginTop: 14, fontSize: 15 }}>12,540 makers and counting. Here&apos;s what a few of them are saying.</p>
         </div>
-        <div style={{ columnCount: 3, columnGap: 16 }}>
+        <div className="m-testimonials" style={{ columnCount: 3, columnGap: 16 }}>
           {quotes.map((q, i) => (
             <div key={i} style={{ breakInside: 'avoid', marginBottom: 16, background: 'white', border: '1px solid var(--line)', borderRadius: 18, padding: 22 }}>
               <div style={{ display: 'flex', gap: 2, marginBottom: 12, color: '#F5B400' }}>
@@ -567,7 +568,7 @@ function BlogPreview() {
             View all articles <ArrowIcon />
           </Link>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        <div className="m-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {posts.map((p, i) => (
             <Link key={i} href="/blog" style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .25s, box-shadow .25s', textDecoration: 'none', color: 'inherit' }}>
               <div style={{ background: p.bg, padding: 28, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

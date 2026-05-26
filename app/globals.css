@@ -93,6 +93,43 @@ body { overflow-x: hidden; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Mobile responsive (≤ 768px) ─────────────────────── */
+@media (max-width: 768px) {
+  /* Utility */
+  .m-hide { display: none !important; }
+
+  /* Generate page */
+  .m-main-pad  { padding: 20px 16px 40px !important; }
+  .m-card-outer { padding: 20px !important; border-radius: 20px !important; }
+  .m-generate-panel { grid-template-columns: 1fr !important; gap: 28px !important; }
+  .m-generate-divider { display: none !important; }
+  .m-action-btns { grid-template-columns: repeat(3, 1fr) !important; }
+  .m-recent-renders { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Landing */
+  .m-hero-section { padding: 72px 16px 40px !important; }
+  .m-icon-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .m-inner-pad { padding: 32px 20px !important; }
+  .m-stats-inner { grid-template-columns: 1fr !important; }
+  .m-stats-inner > div { border-left: none !important; border-top: 1px solid rgba(255,255,255,0.2); }
+  .m-stats-inner > div:first-child { border-top: none !important; }
+  .m-2col { grid-template-columns: 1fr !important; }
+  .m-3col { grid-template-columns: 1fr !important; }
+  .m-testimonials { column-count: 1 !important; }
+
+  /* Library */
+  .m-featured-pack { grid-template-columns: 1fr !important; }
+  .m-formats { grid-template-columns: repeat(2, 1fr) !important; }
+  .m-bake-cta { flex-direction: column !important; }
+  .m-bake-cta-text { padding-left: 0 !important; }
+
+  /* Pricing */
+  .m-pricing-cards { grid-template-columns: 1fr !important; }
+
+  /* Blog */
+  .m-blog-featured { grid-template-columns: 1fr !important; }
+}
+
 /* ── Tailwind utilities ───────────────────────────────── */
 @layer base {
   * { @apply border-border; }
