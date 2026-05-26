@@ -127,25 +127,8 @@ function openRemix(src: string, name: string) {
 /* ── Hero ───────────────────────────────────────────── */
 function Hero({ search, setSearch }: { search: string; setSearch: (s: string) => void }) {
   return (
-    <section style={{ position: 'relative', padding: '120px 24px 36px', overflow: 'hidden' }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/assets/grid_bg.svg" alt="" style={{ position: 'absolute', top: 0, left: 0, width: '100%', opacity: 0.5, pointerEvents: 'none', zIndex: 0 }} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/assets/lightray_right.avif" alt="" style={{ position: 'absolute', top: 0, left: 0, width: 'min(36vw, 460px)', pointerEvents: 'none', zIndex: 0 }} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/assets/lightfade_left.avif" alt="" style={{ position: 'absolute', top: 0, right: 0, width: 'min(36vw, 460px)', pointerEvents: 'none', zIndex: 0 }} />
-
-      {/* Floating icons */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/assets/trophy.webp" alt="" style={{ position: 'absolute', top: 120, left: '4%', width: 96, transform: 'rotate(-12deg)', filter: 'drop-shadow(0 12px 24px rgba(20,30,80,0.18))', animation: 'float 5s ease-in-out infinite', zIndex: 1 }} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/assets/diamond.webp" alt="" style={{ position: 'absolute', top: 150, right: '6%', width: 92, transform: 'rotate(14deg)', filter: 'drop-shadow(0 12px 24px rgba(20,30,80,0.18))', animation: 'float 6s ease-in-out infinite 1s', zIndex: 1 }} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/assets/smile.webp" alt="" style={{ position: 'absolute', top: 310, left: '10%', width: 72, transform: 'rotate(10deg)', filter: 'drop-shadow(0 12px 24px rgba(20,30,80,0.18))', animation: 'float 4.5s ease-in-out infinite 0.5s', zIndex: 1 }} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/assets/cap.webp" alt="" style={{ position: 'absolute', top: 290, right: '12%', width: 76, transform: 'rotate(-18deg)', filter: 'drop-shadow(0 12px 24px rgba(20,30,80,0.18))', animation: 'float 5.5s ease-in-out infinite 1.5s', zIndex: 1 }} />
-
-      <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto', textAlign: 'center', zIndex: 2 }}>
+    <section style={{ padding: '64px 24px 40px' }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 14px', borderRadius: 100, background: 'white', border: '1px solid var(--line)', boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 2px 8px rgba(20,30,80,0.04)', fontSize: 12.5, color: 'var(--ink-2)', marginBottom: 28 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--blue)', boxShadow: '0 0 0 3px rgba(59,130,246,0.18)' }} />
           <span className="mono" style={{ fontSize: 11, letterSpacing: '0.08em' }}>1,876 ICONS</span>
