@@ -173,7 +173,7 @@ function Hero({ search, setSearch }: { search: string; setSearch: (s: string) =>
 function PackBar({ pack, setPack }: { pack: string; setPack: (p: PackId) => void }) {
   return (
     <section style={{ padding: '0 24px 28px' }}>
-      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>◆ Style packs</div>
           <a href="#" style={{ fontSize: 12.5, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -288,7 +288,7 @@ function Grid({ search, pack, category, setCategory, onOpen }: {
 
   return (
     <section style={{ padding: '0 24px 80px' }}>
-      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
           <div className="scroll-hide" style={{ display: 'flex', gap: 6, overflowX: 'auto', flex: 1, minWidth: 0 }}>
@@ -357,7 +357,7 @@ function FeaturedPack() {
   ]
   return (
     <section style={{ padding: '0 24px 80px' }}>
-      <div style={{ maxWidth: 1240, margin: '0 auto', borderRadius: 28, background: 'linear-gradient(135deg, #0A1430 0%, #1B2A55 100%)', padding: '56px 48px', position: 'relative', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 40, alignItems: 'center' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', borderRadius: 28, background: 'linear-gradient(135deg, #0A1430 0%, #1B2A55 100%)', padding: '56px 48px', position: 'relative', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 40, alignItems: 'center' }}>
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(60% 50% at 20% 50%, rgba(123,176,255,0.22), transparent 70%)' }} />
         <div style={{ position: 'relative', zIndex: 2 }}>
           <div className="mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--blue-2)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16, padding: '5px 12px', borderRadius: 100, background: 'rgba(123,176,255,0.12)', border: '1px solid rgba(123,176,255,0.2)' }}>
@@ -408,7 +408,7 @@ function Formats() {
   ]
   return (
     <section style={{ padding: '0 24px 80px' }}>
-      <div style={{ maxWidth: 1240, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
         {items.map((it, i) => (
           <div key={i} style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 18, padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--blue-soft)', color: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 600 }}>{it.i}</div>
@@ -427,7 +427,7 @@ function Formats() {
 function BakeCTA() {
   return (
     <section style={{ padding: '0 24px 80px' }}>
-      <div style={{ maxWidth: 1240, margin: '0 auto', borderRadius: 28, background: 'linear-gradient(180deg, #FFFFFF 0%, #F4F8FF 100%)', border: '1px solid var(--line)', padding: '56px 48px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32 }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', borderRadius: 28, background: 'linear-gradient(180deg, #FFFFFF 0%, #F4F8FF 100%)', border: '1px solid var(--line)', padding: '56px 48px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/assets/girl.avif" alt="" style={{ position: 'absolute', bottom: -20, left: 40, width: 180, opacity: 0.92, transform: 'rotate(-6deg)', filter: 'drop-shadow(0 16px 30px rgba(20,30,80,0.20))' }} />
         <div style={{ paddingLeft: 220 }}>
@@ -580,7 +580,7 @@ function Drawer({ item, onClose }: { item: CatalogueItem | null; onClose: () => 
 function LibraryFooter() {
   return (
     <footer style={{ padding: '40px 24px 32px', borderTop: '1px solid var(--line)' }}>
-      <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/logo.avif" alt="Oven" style={{ width: 26, height: 26, borderRadius: '50%' }} />

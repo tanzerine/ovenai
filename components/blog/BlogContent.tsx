@@ -60,7 +60,7 @@ export default function BlogContent() {
 
         {/* Featured post */}
         <section style={{ padding: '0 24px 56px' }}>
-          <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+          <div style={{ maxWidth: 1100, margin: '0 auto' }}>
             <Link href="#" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', background: 'white', border: '1px solid var(--line)', borderRadius: 28, overflow: 'hidden', boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 24px rgba(20,30,80,0.04)', textDecoration: 'none', color: 'inherit' }}>
               <div style={{ background: featured.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48, minHeight: 420, position: 'relative' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -90,7 +90,7 @@ export default function BlogContent() {
 
         {/* Post grid */}
         <section style={{ padding: '0 24px 80px' }}>
-          <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+          <div style={{ maxWidth: 1100, margin: '0 auto' }}>
             {/* Topics + search */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, gap: 16, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

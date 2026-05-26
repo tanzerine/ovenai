@@ -183,7 +183,7 @@ export default function PricingContent() {
 
         {/* Tier cards */}
         <section style={{ padding: '0 24px 80px' }}>
-          <div style={{ maxWidth: 1240, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
             {TIERS.map((t, i) => (
               <div key={i} style={{ background: t.dark ? 'var(--ink)' : 'white', color: t.dark ? 'white' : 'var(--ink)', border: t.dark ? 'none' : '1px solid var(--line)', borderRadius: 24, padding: '32px 28px 28px', position: 'relative', boxShadow: t.dark ? '0 24px 60px -20px rgba(11,11,14,0.5)' : '0 1px 2px rgba(20,30,80,0.03)', display: 'flex', flexDirection: 'column' }}>
                 {t.popular && (

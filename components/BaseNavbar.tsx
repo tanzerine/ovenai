@@ -41,7 +41,7 @@ export default function BaseNavbar() {
       <nav
         style={{
           width: '100%',
-          maxWidth: 1240,
+          maxWidth: 1100,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',

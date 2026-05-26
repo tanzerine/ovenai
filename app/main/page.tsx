@@ -418,7 +418,7 @@ export default function GeneratePage() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/assets/lightfade_left.avif" alt="" style={{ position: 'absolute', top: 0, right: 0, width: 'min(36vw, 460px)', pointerEvents: 'none', zIndex: 0 }} />
 
-      <main style={{ position: 'relative', zIndex: 2, padding: '56px 24px 64px', maxWidth: 1240, margin: '0 auto' }}>
+      <main style={{ position: 'relative', zIndex: 2, padding: '56px 24px 64px', maxWidth: 1100, margin: '0 auto' }}>
         {/* Page header */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div className="mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--blue)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 14 }}>◆ Generate</div>
