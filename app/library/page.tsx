@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import BaseNavbar from '@/components/BaseNavbar'
 
 /* ── SVG icons ──────────────────────────────────────── */
 const ArrowIcon = (p: React.SVGProps<SVGSVGElement>) => (
@@ -632,7 +631,6 @@ export default function LibraryPage() {
         .scroll-hide { scrollbar-width: none; }
       `}</style>
       <div>
-        <BaseNavbar />
         <Hero search={search} setSearch={setSearch} />
         <PackBar pack={pack} setPack={setPack} />
         <Grid search={search} pack={pack} category={category} setCategory={setCategory} onOpen={setOpened} />
