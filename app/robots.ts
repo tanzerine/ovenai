@@ -13,7 +13,9 @@ export default function robots(): MetadataRoute.Robots {
           '/admin/',
           '/_next/',
           '/_vercel/',
-          '/main',
+          // /main intentionally allowed: it's the generate page. Unauthenticated
+          // users hitting it via Google are redirected to Clerk sign-in by
+          // middleware, then bounced back to /main after auth.
           '/billing',
           '/success',
           '/feedback',

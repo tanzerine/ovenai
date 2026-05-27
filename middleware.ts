@@ -45,14 +45,13 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   if (!isPublicRoute(request)) {
-    const { userId } = await auth()
+    const { userId, redirectToSignIn } = await auth()
     if (!userId) {
-      const signInUrl = new URL(
-        process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ?? 'https://accounts.clerk.dev/sign-in',
-        request.url
-      )
-      signInUrl.searchParams.set('redirect_url', request.url)
-      return NextResponse.redirect(signInUrl)
+      // Use Clerk's built-in redirectToSignIn — it points at the URL
+      // configured via NEXT_PUBLIC_CLERK_SIGN_IN_URL or the Clerk dashboard
+      // Account Portal, and returns the user to the original URL after
+      // sign-in. Replaces the broken accounts.clerk.dev/sign-in fallback.
+      return redirectToSignIn({ returnBackUrl: request.url })
     }
   }
 })
