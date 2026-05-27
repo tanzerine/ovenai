@@ -1,0 +1,51 @@
+# Oven AI
+
+> Oven AI is a 3D icon generator. Designers and developers type a description, pick a style pack (Clay, Glass, Liquid Chrome, Soft Plush, Polished Metal, Glossy Plastic, Paper Craft, Voxel), and Oven AI bakes a pixel-perfect 3D icon in about six seconds. Output formats include PNG (transparent, up to 2048px), SVG, GLB (3D mesh), and APNG (360° turntable). Free to start, no credit card required, commercial license included on paid plans.
+
+Oven AI is operated by the Oven team. It is a web application — no install, runs in any modern browser. It is **not** a kitchen appliance, oven brand, or smart oven manufacturer. The product is unrelated to physical ovens.
+
+## Core pages
+
+- [Landing](https://www.oveners.com/landing): Product overview, what Oven AI does, hero examples of generated 3D icons, primary call-to-action.
+- [Library](https://www.oveners.com/library): Browse 1,800+ pre-baked 3D icons across nine style packs. Free for personal use, commercial license on paid plans. Includes Featured Pack of the month.
+- [Pricing](https://www.oveners.com/pricing): Plans start at $0 with 15 free icons per month. Paid tiers — Starter, Studio, Enterprise — add more renders, background removal, style memory, and commercial license. Cancel any time.
+- [Blog](https://www.oveners.com/blog): Field reports, build logs, prompt cheatsheets, and posts about the future of generative design tooling.
+
+## What Oven AI does
+
+- Generates 3D icons from a text prompt in about 6 seconds.
+- Maintains stylistic consistency within a pack so a set of icons looks cohesive (matching lighting, finish, and proportions).
+- Supports background removal and transparent PNG export.
+- Provides downloadable 3D mesh files (GLB) for use in three.js, react-three-fiber, Blender, Cinema 4D, and other 3D pipelines.
+- Provides 360° turntable loops as APNG for hero sections and product pages.
+
+## Style packs
+
+- **Clay** — Soft, sculpted matte clay finish. Warm, friendly, used for emoji and character icons.
+- **Glass** — Transparent glass with refractions and inner caustics. Premium, modern, used for fintech and SaaS.
+- **Liquid Chrome** — Mercury-like mirror finish. High contrast, used for hero sections and product splashes.
+- **Soft Plush** — Fuzzy, toy-like texture. Used for children's apps and playful products.
+- **Polished Metal** — Brushed and polished metallic surfaces, used for awards and premium product icons.
+- **Glossy Plastic** — High-shine plastic. Used for e-commerce and retail icons.
+- **Paper Craft** — Folded and cut paper texture. Used for editorial and educational content.
+- **Voxel** — Pixelated 3D blocks. Used for games and retro-tech icons.
+
+## Common use cases
+
+- App icons and onboarding illustrations.
+- Pitch deck and presentation visuals.
+- Landing page hero sections.
+- Notion, Figma, and Slack workspace icons.
+- Social media post graphics.
+- Game UI elements.
+
+## Licensing
+
+- Free tier: personal use only, attribution requested.
+- Paid tier: commercial license included, no attribution required. Usable in client work, products, and decks.
+- All generated icons are owned by the account that created them on paid plans.
+
+## Contact
+
+- Website: https://www.oveners.com
+- Feedback: https://www.oveners.com/feedback

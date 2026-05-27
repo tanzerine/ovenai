@@ -1,5 +1,7 @@
 import { MetadataRoute } from 'next'
 
+const BASE_URL = 'https://www.oveners.com'
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
@@ -12,10 +14,27 @@ export default function robots(): MetadataRoute.Robots {
           '/_next/',
           '/_vercel/',
           '/main',
+          '/billing',
+          '/success',
+          '/feedback',
         ],
       },
+      // Explicit allow for major LLM crawlers so Oven AI can be cited
+      // in answers from ChatGPT, Perplexity, Claude, Gemini, etc.
+      { userAgent: 'GPTBot', allow: '/' },
+      { userAgent: 'OAI-SearchBot', allow: '/' },
+      { userAgent: 'ChatGPT-User', allow: '/' },
+      { userAgent: 'PerplexityBot', allow: '/' },
+      { userAgent: 'Perplexity-User', allow: '/' },
+      { userAgent: 'ClaudeBot', allow: '/' },
+      { userAgent: 'Claude-Web', allow: '/' },
+      { userAgent: 'anthropic-ai', allow: '/' },
+      { userAgent: 'Google-Extended', allow: '/' },
+      { userAgent: 'Applebot-Extended', allow: '/' },
+      { userAgent: 'CCBot', allow: '/' },
+      { userAgent: 'cohere-ai', allow: '/' },
     ],
-    sitemap: 'https://www.oveners.com/sitemap.xml',
-    host: 'https://www.oveners.com',
+    sitemap: `${BASE_URL}/sitemap.xml`,
+    host: BASE_URL,
   }
 }
