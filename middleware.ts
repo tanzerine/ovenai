@@ -9,6 +9,13 @@ const isPublicRoute = createRouteMatcher([
   '/blog',
   '/blog/(.*)',
   '/feedback',
+  '/library',
+  '/library/(.*)',
+  // /main is public so unauthenticated visitors can load the generator UI,
+  // type a prompt, and explore. The actual /api/generate call is gated
+  // server-side (not in this list), so model runs still require sign-in.
+  '/main',
+  '/main/(.*)',
   '/api/stripe-webhook',
   '/sign-in(.*)',
   '/sign-up(.*)',

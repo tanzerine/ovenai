@@ -17,7 +17,7 @@ declare global {
 }
 
 import React, { useState, useRef, useEffect } from 'react'
-import { useUser } from '@clerk/nextjs'
+import { useUser, SignInButton } from '@clerk/nextjs'
 import { usePointsStore } from '../store/usePointsStore'
 import Image from 'next/image'
 
@@ -443,7 +443,7 @@ export default function GeneratePage() {
                 </div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--blue)', fontWeight: 500, padding: '5px 10px', background: 'var(--blue-soft)', borderRadius: 100 }}>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--blue)', display: 'inline-block' }} />
-                  {points !== null ? `${points} pts left` : '…'}
+                  {isSignedIn ? (points !== null ? `${points} pts left` : '…') : 'Preview mode'}
                 </div>
               </div>
 
@@ -538,13 +538,23 @@ export default function GeneratePage() {
 
               {error && <p style={{ color: 'var(--bad)', fontSize: 13, marginBottom: 12 }}>{error}</p>}
 
-              <button
-                onClick={generateIcon}
-                disabled={isGenerating || !prompt.trim()}
-                style={{ marginTop: 8, width: '100%', background: isGenerating || !prompt.trim() ? 'var(--blue-soft)' : 'linear-gradient(180deg, #3B82F6, #2563EB)', color: isGenerating || !prompt.trim() ? 'var(--blue)' : 'white', padding: '14px 18px', borderRadius: 14, fontSize: 14.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: isGenerating || !prompt.trim() ? 'none' : '0 6px 16px rgba(37,99,235,0.35), inset 0 1px 0 rgba(255,255,255,0.25)', border: 'none', fontFamily: 'inherit', cursor: isGenerating || !prompt.trim() ? 'not-allowed' : 'pointer', transition: 'all .2s' }}
-              >
-                <SparkIcon /> {isGenerating ? 'Baking…' : 'Run · 50 credit'}
-              </button>
+              {isSignedIn ? (
+                <button
+                  onClick={generateIcon}
+                  disabled={isGenerating || !prompt.trim()}
+                  style={{ marginTop: 8, width: '100%', background: isGenerating || !prompt.trim() ? 'var(--blue-soft)' : 'linear-gradient(180deg, #3B82F6, #2563EB)', color: isGenerating || !prompt.trim() ? 'var(--blue)' : 'white', padding: '14px 18px', borderRadius: 14, fontSize: 14.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: isGenerating || !prompt.trim() ? 'none' : '0 6px 16px rgba(37,99,235,0.35), inset 0 1px 0 rgba(255,255,255,0.25)', border: 'none', fontFamily: 'inherit', cursor: isGenerating || !prompt.trim() ? 'not-allowed' : 'pointer', transition: 'all .2s' }}
+                >
+                  <SparkIcon /> {isGenerating ? 'Baking…' : 'Run · 50 credit'}
+                </button>
+              ) : (
+                <SignInButton mode="modal" forceRedirectUrl="/main">
+                  <button
+                    style={{ marginTop: 8, width: '100%', background: 'linear-gradient(180deg, #3B82F6, #2563EB)', color: 'white', padding: '14px 18px', borderRadius: 14, fontSize: 14.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 16px rgba(37,99,235,0.35), inset 0 1px 0 rgba(255,255,255,0.25)', border: 'none', fontFamily: 'inherit', cursor: 'pointer', transition: 'all .2s' }}
+                  >
+                    <SparkIcon /> Sign in to bake
+                  </button>
+                </SignInButton>
+              )}
             </div>
 
             {/* Divider */}
