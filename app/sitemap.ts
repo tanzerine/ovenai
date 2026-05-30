@@ -1,11 +1,12 @@
 import { MetadataRoute } from 'next'
+import { POSTS } from '@/lib/blog-posts'
 
 const BASE_URL = 'https://www.oveners.com'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
 
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
       lastModified: now,
@@ -37,4 +38,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
   ]
+
+  const blogRoutes: MetadataRoute.Sitemap = POSTS.map(post => ({
+    url: `${BASE_URL}/blog/${post.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }))
+
+  return [...staticRoutes, ...blogRoutes]
 }

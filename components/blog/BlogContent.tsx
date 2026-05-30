@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { POSTS } from '@/lib/blog-posts'
 
 const ArrowIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -15,15 +16,6 @@ const SearchIcon = () => (
   </svg>
 )
 
-const POSTS = [
-  { title: 'How we trained Oven on 800k 3D renders without losing the soul', excerpt: 'A peek inside the data pipeline, the rendering rig that almost burnt down our office, and how we keep output from drifting into uncanny-valley plastic.', cover: '/assets/diamond.webp', bg: '#E6F0FF', topic: 'Engineering', author: 'Mira Patel', date: 'May 22, 2026', read: '8 min' },
-  { title: 'A field guide to writing prompts that bake clean icons', excerpt: 'Subject + style + lighting + format. Why two extra words can save you ten retries, with side-by-side examples for ten common categories.', cover: '/assets/trophy.webp', bg: '#FFF4DC', topic: 'Tutorial', author: 'Jonah Reed', date: 'May 18, 2026', read: '6 min' },
-  { title: 'Style memory is here — lock your brand once, forget about it', excerpt: 'Train Oven on a handful of your existing assets and every render that follows matches your system.', cover: '/assets/shake.webp', bg: '#EAE3FF', topic: 'Product', author: 'Amelie Brun', date: 'May 10, 2026', read: '4 min' },
-  { title: 'Designers we love: five people changing how 3D feels in product UI', excerpt: "Profiles of five working designers — what they make, how they ship, and the corner of the craft they're quietly moving forward.", cover: '/assets/icecream.webp', bg: '#FFE4EC', topic: 'Community', author: 'Theo Mensah', date: 'May 4, 2026', read: '12 min' },
-  { title: 'GLB export, explained: when (and when not) to ship a real 3D asset', excerpt: "Transparent PNG is still the right answer 90% of the time. Here's the 10% where a GLB pulls real weight.", cover: '/assets/cap.webp', bg: '#DCEEFF', topic: 'Tutorial', author: 'Wei Lin', date: 'April 28, 2026', read: '7 min' },
-  { title: "Behind the rebrand: why Oven's logo is a circle and nothing else", excerpt: "Eighteen rounds, two dropped concepts, and the surprisingly hot debate about whether you're allowed to put text inside a tiny circle.", cover: '/assets/cart.avif', bg: '#E8F0FF', topic: 'Design', author: 'Sasha K.', date: 'April 19, 2026', read: '9 min' },
-  { title: "What we're shipping next quarter — a rough sketch", excerpt: 'API, animated APNG sequences, batch jobs, multi-seat workspaces. The order we\'re tackling them and why.', cover: '/assets/pig.avif', bg: '#FFE6F0', topic: 'Product', author: 'Mira Patel', date: 'April 11, 2026', read: '5 min' },
-]
 
 const TOPICS = ['All', 'Product', 'Engineering', 'Tutorial', 'Design', 'Community']
 
@@ -61,7 +53,7 @@ export default function BlogContent() {
         {/* Featured post */}
         <section style={{ padding: '0 24px 56px' }}>
           <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-            <Link href="#" className="m-blog-featured" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', background: 'white', border: '1px solid var(--line)', borderRadius: 28, overflow: 'hidden', boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 24px rgba(20,30,80,0.04)', textDecoration: 'none', color: 'inherit' }}>
+            <Link href={`/blog/${featured.slug}`} className="m-blog-featured" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', background: 'white', border: '1px solid var(--line)', borderRadius: 28, overflow: 'hidden', boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 24px rgba(20,30,80,0.04)', textDecoration: 'none', color: 'inherit' }}>
               <div style={{ background: featured.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48, minHeight: 420, position: 'relative' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={featured.cover} alt="" style={{ width: '60%', maxWidth: 280, objectFit: 'contain', filter: 'drop-shadow(0 16px 32px rgba(20,30,80,0.18))' }} />
@@ -113,7 +105,7 @@ export default function BlogContent() {
             {rest.length > 0 ? (
               <div className="m-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
                 {rest.map((p, i) => (
-                  <Link key={i} href="#" style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .25s, box-shadow .25s', textDecoration: 'none', color: 'inherit' }}
+                  <Link key={i} href={`/blog/${p.slug}`} style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .25s, box-shadow .25s', textDecoration: 'none', color: 'inherit' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 32px rgba(20,30,80,0.08)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '' }}
                   >
