@@ -12,6 +12,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/stripe-webhook',
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/.well-known/(.*)',
 ])
 
 function handleRedirects(request: NextRequest) {
@@ -59,7 +60,7 @@ export default clerkMiddleware(async (auth, request) => {
 
 export const config = {
   matcher: [
-    '/((?!_next|api/stripe-webhook|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|avif|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/((?!_next|api/stripe-webhook|\\.well-known|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|avif|png|gif|svg|ttf|woff2?|ico|csv|txt|docx?|xlsx?|zip|webmanifest)).*)',
     '/(api|trpc)/((?!stripe-webhook).)*$',
   ],
 }
