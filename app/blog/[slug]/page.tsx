@@ -13,6 +13,8 @@ type Article = {
   meta_description: string
   body_md: string
   published_at: string
+  cover_image_url: string | null
+  cover_image_credit: { name: string; profile_url: string } | null
 }
 
 async function fetchArticle(slug: string): Promise<Article | null> {
@@ -64,7 +66,7 @@ export default async function BlogArticle({ params }: { params: { slug: string }
         ← All articles
       </Link>
 
-      <header style={{ marginTop: 24, marginBottom: 40 }}>
+      <header style={{ marginTop: 24, marginBottom: 32 }}>
         <h1 style={{ fontSize: 'clamp(28px, 4.2vw, 44px)', fontWeight: 600, lineHeight: 1.15, letterSpacing: '-0.02em', margin: '0 0 14px' }}>
           {article.title}
         </h1>
@@ -74,6 +76,24 @@ export default async function BlogArticle({ params }: { params: { slug: string }
           </div>
         )}
       </header>
+
+      {article.cover_image_url && (
+        <figure style={{ margin: '0 0 40px' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={article.cover_image_url}
+            alt={article.title}
+            style={{ width: '100%', height: 'auto', borderRadius: 16, display: 'block' }}
+          />
+          {article.cover_image_credit?.name && (
+            <figcaption style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8, textAlign: 'right' }}>
+              Photo by <a href={article.cover_image_credit.profile_url} target="_blank" rel="noreferrer" style={{ color: 'var(--muted)', textDecoration: 'underline' }}>
+                {article.cover_image_credit.name}
+              </a> on Unsplash
+            </figcaption>
+          )}
+        </figure>
+      )}
 
       <article
         className="grove-prose"
