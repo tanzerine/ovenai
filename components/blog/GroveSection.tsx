@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 
 type GrovePost = {
+  slug: string
   title: string
   excerpt: string
-  url: string
+  url: string          // fallback to grove's URL if /blog/[slug] route not wired
   date: string | null
 }
 
@@ -59,9 +60,9 @@ export default function GroveSection() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
           {feed.posts.map((p) => (
             <a
-              key={p.url}
-              href={p.url}
-              target="_blank"
+              key={p.slug ?? p.url}
+              // local URL keeps users on oveners.com, gives us SEO credit
+              href={p.slug ? `/blog/${p.slug}` : p.url}
               rel="noreferrer"
               style={{
                 display: 'flex', flexDirection: 'column',
