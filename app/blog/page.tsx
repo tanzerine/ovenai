@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import BlogContent from '@/components/blog/BlogContent'
+import { fetchGrovePosts } from '@/lib/grove'
 
 export const metadata: Metadata = {
   title: 'Blog — Notes from the oven',
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default function BlogPage() {
-  return <BlogContent />
+export default async function BlogPage() {
+  const grovePosts = await fetchGrovePosts()
+  return <BlogContent grovePosts={grovePosts} />
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import GroveSection from './GroveSection'
+import type { GrovePost } from '@/lib/grove'
 
 const ArrowIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -30,7 +30,10 @@ const TOPICS = ['All', 'Product', 'Engineering', 'Tutorial', 'Design', 'Communit
 
 const avatarInitials = (name: string) => name.split(' ').map(s => s[0]).join('')
 
-export default function BlogContent() {
+const formatDate = (d: string) =>
+  new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+
+export default function BlogContent({ grovePosts = [] }: { grovePosts?: GrovePost[] }) {
   const [topic, setTopic] = useState('All')
   const [search, setSearch] = useState('')
   const featured = POSTS[0]
@@ -59,8 +62,52 @@ export default function BlogContent() {
           </p>
         </section>
 
-        {/* Live grove feed — only renders when NEXT_PUBLIC_GROVE_BLOG_SLUG is set */}
-        <GroveSection />
+        {/* Live Grove articles */}
+        {grovePosts.length > 0 && (
+          <section style={{ padding: '0 24px 56px' }}>
+            <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, gap: 16, flexWrap: 'wrap' }}>
+                <div>
+                  <div className="mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--blue)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>
+                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--blue)' }} />
+                    Fresh from the feed
+                  </div>
+                  <h2 style={{ fontSize: 'clamp(22px, 2.6vw, 30px)', fontWeight: 600, margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1 }}>Latest articles</h2>
+                </div>
+              </div>
+              <div className="grove-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                {grovePosts.slice(0, 6).map((p) => (
+                  <Link key={p.slug} href={`/blog/${p.slug}`} style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .25s, box-shadow .25s', textDecoration: 'none', color: 'inherit' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 32px rgba(20,30,80,0.08)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '' }}
+                  >
+                    <div style={{ height: 180, position: 'relative', background: p.cover_image_url ? `url(${p.cover_image_url}) center / cover no-repeat` : 'linear-gradient(135deg, #E6F0FF, #DCEEFF)' }}>
+                      {!p.cover_image_url && (
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, opacity: 0.5 }}>◆</div>
+                      )}
+                    </div>
+                    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: 'var(--muted)', marginBottom: 12 }}>
+                        <span style={{ color: 'var(--blue)', fontWeight: 600, background: 'var(--blue-soft)', padding: '2px 8px', borderRadius: 100, fontSize: 10.5 }}>AI</span>
+                        {p.date && <span>{formatDate(p.date)}</span>}
+                      </div>
+                      <h3 style={{ fontSize: 17, letterSpacing: '-0.01em', fontWeight: 600, lineHeight: 1.25, marginBottom: 10 }}>{p.title}</h3>
+                      <p style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 18, flex: 1, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.excerpt}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, borderTop: '1px solid var(--line)' }}>
+                        <span style={{ fontSize: 12, color: 'var(--muted)' }}>{p.read_minutes ?? 5} min read</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--blue)', fontWeight: 500 }}>Read <ArrowIcon /></span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <style>{`
+              @media (max-width: 880px) { .grove-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+              @media (max-width: 580px) { .grove-grid { grid-template-columns: 1fr !important; } }
+            `}</style>
+          </section>
+        )}
 
         {/* Featured post */}
         <section style={{ padding: '0 24px 56px' }}>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import type { GrovePost } from '@/lib/grove'
 
 /* ── Tiny icon components ─────────────────────────────── */
 const ArrowIcon = () => (
@@ -548,12 +549,18 @@ function Testimonials() {
 }
 
 /* ── Blog preview ─────────────────────────────────────── */
-function BlogPreview() {
-  const posts = [
-    { title: 'How we trained Oven on 800k 3D renders without losing the soul', excerpt: 'A peek inside the data pipeline and how we keep output from drifting into uncanny-valley plastic.', cover: '/assets/diamond.webp', bg: '#E6F0FF', topic: 'Engineering', date: 'May 22', read: '8 min' },
-    { title: 'A field guide to writing prompts that bake clean icons', excerpt: 'Subject + style + lighting + format. Why two extra words can save you ten retries.', cover: '/assets/trophy.webp', bg: '#FFF4DC', topic: 'Tutorial', date: 'May 18', read: '6 min' },
-    { title: 'Style memory is here — lock your brand once, forget about it', excerpt: 'Train Oven on a handful of your existing assets and every render that follows matches your system.', cover: '/assets/shake.webp', bg: '#EAE3FF', topic: 'Product', date: 'May 10', read: '4 min' },
-  ]
+const STATIC_POSTS = [
+  { title: 'How we trained Oven on 800k 3D renders without losing the soul', excerpt: 'A peek inside the data pipeline and how we keep output from drifting into uncanny-valley plastic.', cover: '/assets/diamond.webp', bg: '#E6F0FF', topic: 'Engineering', date: 'May 22', read: '8 min' },
+  { title: 'A field guide to writing prompts that bake clean icons', excerpt: 'Subject + style + lighting + format. Why two extra words can save you ten retries.', cover: '/assets/trophy.webp', bg: '#FFF4DC', topic: 'Tutorial', date: 'May 18', read: '6 min' },
+  { title: 'Style memory is here — lock your brand once, forget about it', excerpt: 'Train Oven on a handful of your existing assets and every render that follows matches your system.', cover: '/assets/shake.webp', bg: '#EAE3FF', topic: 'Product', date: 'May 10', read: '4 min' },
+]
+
+const formatBlogDate = (d: string) =>
+  new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+
+function BlogPreview({ grovePosts }: { grovePosts: GrovePost[] }) {
+  const hasGrove = grovePosts.length > 0
+  const displayPosts = hasGrove ? grovePosts.slice(0, 3) : STATIC_POSTS
   return (
     <section style={{ padding: '0 24px 100px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -569,24 +576,41 @@ function BlogPreview() {
           </Link>
         </div>
         <div className="m-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-          {posts.map((p, i) => (
-            <Link key={i} href="/blog" style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .25s, box-shadow .25s', textDecoration: 'none', color: 'inherit' }}>
-              <div style={{ background: p.bg, padding: 28, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.cover} alt="" style={{ width: '46%', maxHeight: '100%', objectFit: 'contain', filter: 'drop-shadow(0 12px 20px rgba(20,30,80,0.18))' }} />
-              </div>
-              <div style={{ padding: 22, display: 'flex', flexDirection: 'column', flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: 'var(--muted)', marginBottom: 10 }}>
-                  <span style={{ color: 'var(--blue)', fontWeight: 600, background: 'var(--blue-soft)', padding: '2px 8px', borderRadius: 100, fontSize: 10.5 }}>{p.topic}</span>
-                  <span>{p.date}</span>
-                  <span style={{ color: 'var(--muted-2)' }}>·</span>
-                  <span>{p.read}</span>
-                </div>
-                <h3 style={{ fontSize: 16, letterSpacing: '-0.01em', fontWeight: 600, lineHeight: 1.3, marginBottom: 8 }}>{p.title}</h3>
-                <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.55 }}>{p.excerpt}</p>
-              </div>
-            </Link>
-          ))}
+          {hasGrove
+            ? displayPosts.map((p) => {
+                const gp = p as GrovePost
+                return (
+                  <Link key={gp.slug} href={`/blog/${gp.slug}`} style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .25s, box-shadow .25s', textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ height: 180, background: gp.cover_image_url ? `url(${gp.cover_image_url}) center / cover no-repeat` : 'linear-gradient(135deg, #E6F0FF, #DCEEFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, opacity: gp.cover_image_url ? 1 : 0.5 }}>
+                      {!gp.cover_image_url && '◆'}
+                    </div>
+                    <div style={{ padding: 22, display: 'flex', flexDirection: 'column', flex: 1 }}>
+                      <div style={{ fontSize: 11.5, color: 'var(--muted)', marginBottom: 10 }}>
+                        {gp.date && formatBlogDate(gp.date)}
+                      </div>
+                      <h3 style={{ fontSize: 16, letterSpacing: '-0.01em', fontWeight: 600, lineHeight: 1.3, marginBottom: 8 }}>{gp.title}</h3>
+                      <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.55 }}>{gp.excerpt}</p>
+                    </div>
+                  </Link>
+                )
+              })
+            : (displayPosts as typeof STATIC_POSTS).map((p, i) => (
+                <Link key={i} href="/blog" style={{ background: 'white', border: '1px solid var(--line)', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform .25s, box-shadow .25s', textDecoration: 'none', color: 'inherit' }}>
+                  <div style={{ background: p.bg, padding: 28, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.cover} alt="" style={{ width: '46%', maxHeight: '100%', objectFit: 'contain', filter: 'drop-shadow(0 12px 20px rgba(20,30,80,0.18))' }} />
+                  </div>
+                  <div style={{ padding: 22, display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: 'var(--muted)', marginBottom: 10 }}>
+                      <span style={{ color: 'var(--blue)', fontWeight: 600, background: 'var(--blue-soft)', padding: '2px 8px', borderRadius: 100, fontSize: 10.5 }}>{p.topic}</span>
+                      <span>{p.date}</span>
+                    </div>
+                    <h3 style={{ fontSize: 16, letterSpacing: '-0.01em', fontWeight: 600, lineHeight: 1.3, marginBottom: 8 }}>{p.title}</h3>
+                    <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.55 }}>{p.excerpt}</p>
+                  </div>
+                </Link>
+              ))
+          }
         </div>
       </div>
     </section>
@@ -627,7 +651,7 @@ function FinalCTA() {
 }
 
 /* ── Page assembly ────────────────────────────────────── */
-export default function LandingPage() {
+export default function LandingPage({ grovePosts = [] }: { grovePosts?: GrovePost[] }) {
   return (
     <div style={{ background: 'var(--bg)' }}>
       <Hero />
@@ -640,7 +664,7 @@ export default function LandingPage() {
       <Compare />
       <FAQ />
       <Testimonials />
-      <BlogPreview />
+      <BlogPreview grovePosts={grovePosts} />
       <FinalCTA />
     </div>
   )

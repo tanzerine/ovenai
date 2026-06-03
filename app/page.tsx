@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import LandingPage from '@/components/landing/LandingPage'
+import { fetchGrovePosts } from '@/lib/grove'
 
 export const metadata: Metadata = {
   title: 'Oven AI — Create 3D Icons with One Click',
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default function Home() {
-  return <LandingPage />
+export default async function Home() {
+  const grovePosts = await fetchGrovePosts()
+  return <LandingPage grovePosts={grovePosts} />
 }

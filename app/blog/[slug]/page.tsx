@@ -77,22 +77,6 @@ export default async function BlogArticle({ params }: { params: { slug: string }
         )}
       </header>
 
-      {article.cover_image_url && (
-        <figure style={{ margin: '0 0 40px' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={article.cover_image_url}
-            alt={article.title}
-            style={{ width: '100%', height: 'auto', borderRadius: 16, display: 'block' }}
-          />
-          {article.cover_image_credit?.name && (
-            <figcaption style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8, textAlign: 'right' }}>
-              {article.cover_image_credit.name}
-            </figcaption>
-          )}
-        </figure>
-      )}
-
       <article
         className="grove-prose"
         dangerouslySetInnerHTML={{ __html: html }}
@@ -123,6 +107,7 @@ export default async function BlogArticle({ params }: { params: { slug: string }
         .grove-prose table { width: 100%; border-collapse: collapse; margin: 1.4em 0; font-size: 15px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
         .grove-prose th, .grove-prose td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
         .grove-prose th { background: rgba(0,0,0,0.03); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .grove-prose img { width: 100%; height: auto; border-radius: 14px; display: block; margin: 1.6em 0; }
       `}</style>
     </main>
   )
