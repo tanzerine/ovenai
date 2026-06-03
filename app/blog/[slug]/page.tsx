@@ -14,7 +14,7 @@ type Article = {
   body_md: string
   published_at: string
   cover_image_url: string | null
-  cover_image_credit: { name: string; profile_url: string } | null
+  cover_image_credit: { name: string } | null
 }
 
 async function fetchArticle(slug: string): Promise<Article | null> {
@@ -87,9 +87,7 @@ export default async function BlogArticle({ params }: { params: { slug: string }
           />
           {article.cover_image_credit?.name && (
             <figcaption style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8, textAlign: 'right' }}>
-              Photo by <a href={article.cover_image_credit.profile_url} target="_blank" rel="noreferrer" style={{ color: 'var(--muted)', textDecoration: 'underline' }}>
-                {article.cover_image_credit.name}
-              </a> on Unsplash
+              {article.cover_image_credit.name}
             </figcaption>
           )}
         </figure>
