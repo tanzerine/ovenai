@@ -14,27 +14,30 @@ type Feed = {
   posts: GrovePost[]
 }
 
-const SLUG = process.env.NEXT_PUBLIC_GROVE_BLOG_SLUG
-const BASE = process.env.NEXT_PUBLIC_GROVE_BASE_URL ?? 'https://grove-red.vercel.app'
+const GROVE_BASE = 'https://grove-red.vercel.app'
 
 /**
  * Live feed of articles published via grove (the autopilot blog engine).
- * Falls back to nothing (renders null) if SLUG isn't configured or the
- * fetch fails, so this section just disappears instead of erroring.
+ *
+ * Zero config — grove looks up your blog by the current window.location.hostname.
+ * Renders nothing if there's no blog for this domain or the fetch fails, so the
+ * rest of the page is unaffected.
  */
 export default function GroveSection() {
   const [feed, setFeed] = useState<Feed | null>(null)
-  const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!SLUG) return
-    fetch(`${BASE}/api/embed/${SLUG}`)
+    if (typeof window === 'undefined') return
+    const host = window.location.hostname
+    if (!host || host === 'localhost') return
+
+    fetch(`${GROVE_BASE}/api/embed/host/${encodeURIComponent(host)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`)))
       .then(setFeed)
-      .catch((e) => setErr(String(e)))
+      .catch(() => { /* silent — section just doesn't render */ })
   }, [])
 
-  if (!SLUG || err || !feed || feed.posts.length === 0) return null
+  if (!feed || feed.posts.length === 0) return null
 
   return (
     <section style={{ padding: '24px 24px 56px' }}>
