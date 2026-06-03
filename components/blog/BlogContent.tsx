@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import GroveSection from './GroveSection'
 
 const ArrowIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -57,6 +58,9 @@ export default function BlogContent() {
             Field reports, build logs, prompt cheatsheets, and the occasional opinion about how the future of design tooling should feel.
           </p>
         </section>
+
+        {/* Live grove feed — only renders when NEXT_PUBLIC_GROVE_BLOG_SLUG is set */}
+        <GroveSection />
 
         {/* Featured post */}
         <section style={{ padding: '0 24px 56px' }}>
