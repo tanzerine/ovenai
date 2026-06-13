@@ -10,12 +10,14 @@ export type GrovePost = {
   cover_image_url: string | null
   cover_image_credit: { name: string } | null
   read_minutes: number
+  genre: string | null
+  author: string | null
 }
 
 export async function fetchGrovePosts(): Promise<GrovePost[]> {
   try {
     const r = await fetch(
-      `${GROVE_BASE}/api/embed/host/${SELF_HOST}`,
+      `${GROVE_BASE}/api/embed/host/${SELF_HOST}?limit=24`,
       { next: { revalidate: 300 } }
     )
     if (!r.ok) return []
