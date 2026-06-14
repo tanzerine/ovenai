@@ -3,8 +3,17 @@ import { notFound } from 'next/navigation'
 import { marked } from 'marked'
 import Link from 'next/link'
 
+marked.setOptions({ gfm: true, breaks: false })
+
 const GROVE_BASE = 'https://grove-red.vercel.app'
 const SELF_HOST = 'www.oveners.com'
+
+type RelatedPost = {
+  slug: string
+  title: string | null
+  meta_description?: string | null
+  cover_image_url?: string | null
+}
 
 type Article = {
   slug: string
@@ -12,9 +21,13 @@ type Article = {
   meta_title: string
   meta_description: string
   body_md: string
+  html: string | null
+  genre: string | null
+  author: string | null
   published_at: string
   cover_image_url: string | null
   cover_image_credit: { name: string } | null
+  related?: RelatedPost[]
 }
 
 async function fetchArticle(slug: string): Promise<Article | null> {
@@ -49,66 +62,110 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-marked.setOptions({ gfm: true, breaks: false })
-
 export default async function BlogArticle({ params }: { params: { slug: string } }) {
   const article = await fetchArticle(params.slug)
   if (!article) notFound()
 
-  const html = marked.parse(article.body_md ?? '', { async: false }) as string
   const date = article.published_at
     ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : ''
 
+  const related = (article.related ?? []).filter((r) => r.slug && r.title)
+
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px 80px' }}>
+    <main style={{ maxWidth: 960, margin: '0 auto', padding: '60px 24px 80px' }}>
       <Link href="/blog" style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'none' }}>
         ← All articles
       </Link>
 
       <header style={{ marginTop: 24, marginBottom: 32 }}>
+        {article.genre && (
+          <div style={{ marginBottom: 12 }}>
+            <span style={{ color: 'var(--blue)', fontWeight: 600, background: 'var(--blue-soft)', padding: '3px 10px', borderRadius: 100, fontSize: 11 }}>
+              {article.genre}
+            </span>
+          </div>
+        )}
         <h1 style={{ fontSize: 'clamp(28px, 4.2vw, 44px)', fontWeight: 600, lineHeight: 1.15, letterSpacing: '-0.02em', margin: '0 0 14px' }}>
           {article.title}
         </h1>
-        {date && (
-          <div className="mono" style={{ fontSize: 12, color: 'var(--muted)', letterSpacing: '0.06em' }}>
-            {date}
-          </div>
-        )}
+        <div className="mono" style={{ fontSize: 12, color: 'var(--muted)', letterSpacing: '0.06em', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          {article.author && <span>By {article.author}</span>}
+          {date && <span>{date}</span>}
+        </div>
       </header>
 
-      <article
-        className="grove-prose"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      {article.html ? (
+        <div dangerouslySetInnerHTML={{ __html: article.html }} />
+      ) : (
+        <article
+          className="grove-prose"
+          dangerouslySetInnerHTML={{ __html: marked.parse(article.body_md ?? '', { async: false }) as string }}
+        />
+      )}
 
-      <style>{`
-        .grove-prose { font-size: 17px; line-height: 1.75; color: var(--ink); }
-        .grove-prose > * + * { margin-top: 1.1em; }
-        .grove-prose h1, .grove-prose h2, .grove-prose h3 {
-          font-weight: 600; line-height: 1.2; letter-spacing: -0.015em;
-          margin-top: 2em; margin-bottom: 0.5em;
-        }
-        .grove-prose h2 { font-size: 1.7em; padding-bottom: 0.25em; border-bottom: 1px solid var(--line); }
-        .grove-prose h3 { font-size: 1.3em; }
-        .grove-prose p { margin: 0 0 1em; }
-        .grove-prose a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-        .grove-prose ul, .grove-prose ol { padding-left: 1.6em; margin: 0.5em 0 1em; }
-        .grove-prose li { margin: 0.4em 0; }
-        .grove-prose blockquote {
-          margin: 1.3em 0; padding: 0.5em 0 0.5em 1.1em;
-          border-left: 3px solid var(--blue); background: rgba(0,0,0,0.02);
-          color: var(--ink); font-style: italic; border-radius: 0 8px 8px 0;
-        }
-        .grove-prose code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.9em; }
-        .grove-prose pre { background: #1a1a1a; color: #f6f4ee; padding: 16px; border-radius: 10px; overflow-x: auto; }
-        .grove-prose pre code { background: transparent; padding: 0; }
-        .grove-prose hr { border: none; border-top: 1px dashed var(--line); margin: 2.2em auto; width: 60%; }
-        .grove-prose table { width: 100%; border-collapse: collapse; margin: 1.4em 0; font-size: 15px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-        .grove-prose th, .grove-prose td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
-        .grove-prose th { background: rgba(0,0,0,0.03); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .grove-prose img { width: 100%; height: auto; border-radius: 14px; display: block; margin: 1.6em 0; }
-      `}</style>
+      {!article.html && (
+        <style>{`
+          .grove-prose { font-size: 17px; line-height: 1.75; color: var(--ink); }
+          .grove-prose > * + * { margin-top: 1.1em; }
+          .grove-prose h1, .grove-prose h2, .grove-prose h3 {
+            font-weight: 600; line-height: 1.2; letter-spacing: -0.015em;
+            margin-top: 2em; margin-bottom: 0.5em;
+          }
+          .grove-prose h2 { font-size: 1.7em; padding-bottom: 0.25em; border-bottom: 1px solid var(--line); }
+          .grove-prose h3 { font-size: 1.3em; }
+          .grove-prose p { margin: 0 0 1em; }
+          .grove-prose a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+          .grove-prose ul, .grove-prose ol { padding-left: 1.6em; margin: 0.5em 0 1em; }
+          .grove-prose li { margin: 0.4em 0; }
+          .grove-prose blockquote {
+            margin: 1.3em 0; padding: 0.5em 0 0.5em 1.1em;
+            border-left: 3px solid var(--blue); background: rgba(0,0,0,0.02);
+            color: var(--ink); font-style: italic; border-radius: 0 8px 8px 0;
+          }
+          .grove-prose code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.9em; }
+          .grove-prose pre { background: #1a1a1a; color: #f6f4ee; padding: 16px; border-radius: 10px; overflow-x: auto; }
+          .grove-prose pre code { background: transparent; padding: 0; }
+          .grove-prose hr { border: none; border-top: 1px dashed var(--line); margin: 2.2em auto; width: 60%; }
+          .grove-prose table { width: 100%; border-collapse: collapse; margin: 1.4em 0; font-size: 15px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+          .grove-prose th, .grove-prose td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
+          .grove-prose th { background: rgba(0,0,0,0.03); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+          .grove-prose img { width: 100%; height: auto; border-radius: 14px; display: block; margin: 1.6em 0; }
+        `}</style>
+      )}
+
+      {related.length > 0 && (
+        <section style={{ marginTop: 56 }}>
+          <div className="mono" style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 16 }}>
+            Keep reading
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(related.length, 3)}, 1fr)`, gap: 16 }}>
+            {related.map((rp) => (
+              <Link
+                key={rp.slug}
+                href={`/blog/${rp.slug}`}
+                style={{ textDecoration: 'none', color: 'inherit', display: 'block', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', transition: 'box-shadow 0.15s' }}
+              >
+                {rp.cover_image_url && (
+                  <img
+                    src={rp.cover_image_url}
+                    alt=""
+                    style={{ width: '100%', height: 120, objectFit: 'cover', display: 'block' }}
+                  />
+                )}
+                <div style={{ padding: '14px 16px 16px' }}>
+                  <div style={{ fontWeight: 600, fontSize: 15, lineHeight: 1.35 }}>{rp.title}</div>
+                  {rp.meta_description && (
+                    <p style={{ fontSize: 13, color: 'var(--muted)', margin: '6px 0 0', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
+                      {rp.meta_description}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   )
 }
