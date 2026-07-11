@@ -2,11 +2,14 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { marked } from 'marked'
 import Link from 'next/link'
+import GroveTracker from '@/components/blog/GroveTracker'
 
 const GROVE_BASE = 'https://grove-red.vercel.app'
 const SELF_HOST = 'www.oveners.com'
 
 type Article = {
+  post_id?: string | null
+  domain_id?: string | null
   slug: string
   title: string
   meta_title: string
@@ -62,6 +65,7 @@ export default async function BlogArticle({ params }: { params: { slug: string }
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px 80px' }}>
+      <GroveTracker postId={article.post_id} domainId={article.domain_id} />
       <Link href="/blog" style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'none' }}>
         ← All articles
       </Link>
