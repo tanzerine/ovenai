@@ -3,7 +3,9 @@ import { notFound } from 'next/navigation'
 import { marked } from 'marked'
 import Link from 'next/link'
 
-const GROVE_BASE = 'https://grove-red.vercel.app'
+// trygroveai.com is grove's live origin (grove-red.vercel.app is a stale
+// deployment alias that could disappear on any cleanup).
+const GROVE_BASE = 'https://trygroveai.com'
 const SELF_HOST = 'www.oveners.com'
 
 type Article = {
@@ -15,6 +17,11 @@ type Article = {
   published_at: string
   cover_image_url: string | null
   cover_image_credit: { name: string } | null
+  // grove returns these so THIS page can fire the read beacon — grove's
+  // strategy loop (what to write next month) steers on reads/dwell, and
+  // without the beacon every reader on oveners.com is invisible to it.
+  post_id: string
+  domain_id: string
 }
 
 async function fetchArticle(slug: string): Promise<Article | null> {
@@ -113,6 +120,39 @@ export default async function BlogArticle({ params }: { params: { slug: string }
         .grove-prose th { background: rgba(0,0,0,0.03); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
         .grove-prose img { width: 100%; height: auto; border-radius: 14px; display: block; margin: 1.6em 0; }
       `}</style>
+
+      {/* First-party read beacon → grove's analytics (same event shape as the
+          grove-hosted blog: view / dwell / scroll / exit, per-tab session id,
+          server-side bot filtering + dedupe). Grove's monthly strategy loop
+          steers on these reads — without this, visitors here are invisible. */}
+      <script dangerouslySetInnerHTML={{ __html: trackerScript(article.post_id, article.domain_id) }} />
     </main>
   )
+}
+
+function trackerScript(postId: string, domainId: string): string {
+  const endpoint = `${GROVE_BASE}/api/track`
+  return `(function(){
+try{
+var s=sessionStorage.getItem('g_sid');
+if(!s){s=Math.random().toString(36).slice(2)+Date.now().toString(36);sessionStorage.setItem('g_sid',s);}
+var u=new URL(location.href);
+var utm={utm_source:u.searchParams.get('utm_source')||undefined,utm_medium:u.searchParams.get('utm_medium')||undefined,utm_campaign:u.searchParams.get('utm_campaign')||undefined};
+var post=function(extra){
+  try{
+    var body=JSON.stringify(Object.assign({post_id:${JSON.stringify(postId)},domain_id:${JSON.stringify(domainId)},session_id:s,referrer:document.referrer||undefined},utm,extra));
+    if(navigator.sendBeacon){navigator.sendBeacon(${JSON.stringify(endpoint)},new Blob([body],{type:'application/json'}));}
+    else{fetch(${JSON.stringify(endpoint)},{method:'POST',headers:{'content-type':'application/json'},body:body,keepalive:true}).catch(function(){});}
+  }catch(e){}
+};
+post({type:'view'});
+var dwell=0,active=true,sentDepths={};
+document.addEventListener('visibilitychange',function(){active=document.visibilityState==='visible';});
+setInterval(function(){if(active){dwell+=15000;post({type:'dwell',dwell_ms:dwell});}},15000);
+window.addEventListener('scroll',function(){
+  var h=document.documentElement;var max=(h.scrollTop+h.clientHeight)/h.scrollHeight*100;
+  [25,50,75,100].forEach(function(d){if(max>=d&&!sentDepths[d]){sentDepths[d]=1;post({type:'scroll',scroll_depth:d});}});
+},{passive:true});
+window.addEventListener('pagehide',function(){post({type:'exit',dwell_ms:dwell});});
+}catch(e){}})();`
 }
