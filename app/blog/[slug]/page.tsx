@@ -34,7 +34,11 @@ async function fetchArticle(slug: string): Promise<Article | null> {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const article = await fetchArticle(params.slug)
   if (!article) return {}
-  const url = `https://www.oveners.com/blog/${params.slug}`
+  // blog.oveners.com is the canonical home of every article — grove serves it
+  // there with the full SEO stack (Article JSON-LD, internal links, sitemap,
+  // robots, llms.txt). This page stays up for site visitors but defers its
+  // search equity to the subdomain, so the two copies never compete on Google.
+  const url = `https://blog.oveners.com/${params.slug}`
   return {
     title: article.meta_title || article.title,
     description: article.meta_description,
