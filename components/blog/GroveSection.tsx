@@ -12,6 +12,8 @@ type GrovePost = {
   cover_image_url: string | null
   cover_image_credit: { name: string; profile_url: string } | null
   read_minutes: number
+  genre: string | null
+  author: string | null
 }
 
 type Feed = {
@@ -19,7 +21,9 @@ type Feed = {
   posts: GrovePost[]
 }
 
-const GROVE_BASE = 'https://grove-red.vercel.app'
+// trygroveai.com is grove's live origin (grove-red.vercel.app is a stale
+// deployment alias that 404s, which silently emptied the feed).
+const GROVE_BASE = 'https://trygroveai.com'
 const ArrowIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
     <path d="M3 7h8m0 0L7.5 3.5M11 7l-3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -148,7 +152,7 @@ export default function GroveSection() {
                     background: 'var(--blue-soft)', padding: '2px 8px',
                     borderRadius: 100, fontSize: 10.5,
                   }}>
-                    Auto
+                    {p.genre || 'Article'}
                   </span>
                   {p.date && <span>{formatDate(p.date)}</span>}
                 </div>
