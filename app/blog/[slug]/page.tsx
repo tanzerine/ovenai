@@ -8,15 +8,34 @@ import Link from 'next/link'
 const GROVE_BASE = 'https://trygroveai.com'
 const SELF_HOST = 'www.oveners.com'
 
+type Related = {
+  slug: string
+  title: string
+  meta_description: string | null
+  cover_image_url: string | null
+  published_at: string | null
+}
+
 type Article = {
   slug: string
   title: string
   meta_title: string
   meta_description: string
+  // Grove returns the SAME article in three shapes. `html` is the recommended
+  // one: a self-contained two-column layout — body left, sticky table-of-
+  // contents rail right, CTA below — with its own scoped <style>. `body_md` is
+  // the fallback for consumers that only render markdown; it carries a
+  // full-width TOC card and the CTA inline instead of the rail. This page used
+  // to render body_md, which is why it had a boxy TOC and no sidebar while
+  // grove's own copy of the same post had one.
+  html: string | null
   body_md: string
   published_at: string
   cover_image_url: string | null
   cover_image_credit: { name: string } | null
+  genre: string | null
+  author: string | null
+  related: Related[] | null
   // grove returns these so THIS page can fire the read beacon — grove's
   // strategy loop (what to write next month) steers on reads/dwell, and
   // without the beacon every reader on oveners.com is invisible to it.
@@ -56,69 +75,159 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       url,
       type: 'article',
       publishedTime: article.published_at,
+      images: article.cover_image_url ? [article.cover_image_url] : undefined,
     },
   }
 }
 
 marked.setOptions({ gfm: true, breaks: false })
 
+const fmtDate = (d: string | null) =>
+  d ? new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''
+
 export default async function BlogArticle({ params }: { params: { slug: string } }) {
   const article = await fetchArticle(params.slug)
   if (!article) notFound()
 
-  const html = marked.parse(article.body_md ?? '', { async: false }) as string
-  const date = article.published_at
-    ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : ''
+  // Prefer grove's rendered two-column HTML. The markdown fallback only runs if
+  // a cached response predates the `html` field — it's wrapped in the same
+  // .grv-body element grove uses so ONE set of prose rules styles both.
+  const inner = article.html
+    ? article.html
+    : `<div class="grv-body">${marked.parse(article.body_md ?? '', { async: false }) as string}</div>`
+  const related = article.related ?? []
 
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px 80px' }}>
+    <main className="blog-article">
       <Link href="/blog" style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'none' }}>
         ← All articles
       </Link>
 
-      <header style={{ marginTop: 24, marginBottom: 32 }}>
-        <h1 style={{ fontSize: 'clamp(28px, 4.2vw, 44px)', fontWeight: 600, lineHeight: 1.15, letterSpacing: '-0.02em', margin: '0 0 14px' }}>
+      <header style={{ marginTop: 24, marginBottom: 28, maxWidth: 760 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+          <span style={{ color: 'var(--blue)', fontWeight: 600, background: 'var(--blue-soft)', padding: '3px 10px', borderRadius: 100, fontSize: 11 }}>
+            {article.genre || 'Article'}
+          </span>
+          <span className="mono" style={{ fontSize: 12, color: 'var(--muted)', letterSpacing: '0.04em' }}>
+            {article.author ? `By ${article.author} · ` : ''}{fmtDate(article.published_at)}
+          </span>
+        </div>
+        <h1 style={{ fontSize: 'clamp(28px, 4.2vw, 44px)', fontWeight: 600, lineHeight: 1.15, letterSpacing: '-0.02em', margin: 0 }}>
           {article.title}
         </h1>
-        {date && (
-          <div className="mono" style={{ fontSize: 12, color: 'var(--muted)', letterSpacing: '0.06em' }}>
-            {date}
-          </div>
-        )}
       </header>
 
-      <article
-        className="grove-prose"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      {article.cover_image_url && (
+        <figure style={{ margin: '0 0 34px' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={article.cover_image_url} alt="" style={{ width: '100%', height: 'auto', borderRadius: 16, display: 'block' }} />
+          {article.cover_image_credit?.name && (
+            <figcaption style={{ fontSize: 11, color: 'var(--muted-2)', marginTop: 8 }}>
+              Photo: {article.cover_image_credit.name}
+            </figcaption>
+          )}
+        </figure>
+      )}
+
+      {/* grove's html brings the TOC rail and the CTA with it — don't add either
+          here, or the page ships two of each. */}
+      <div className="grove-article" dangerouslySetInnerHTML={{ __html: inner }} />
+
+      {related.length > 0 && (
+        <section style={{ marginTop: 56, paddingTop: 28, borderTop: '1px solid var(--line)' }}>
+          <div className="mono" style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 18 }}>
+            Keep reading
+          </div>
+          <div className="blog-related">
+            {related.map((rp) => (
+              <Link key={rp.slug} href={`/blog/${rp.slug}`} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}>
+                {rp.cover_image_url && (
+                  <div style={{ height: 116, background: `url(${rp.cover_image_url}) center / cover no-repeat` }} />
+                )}
+                <div style={{ padding: '14px 16px 16px' }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.35, marginBottom: 6 }}>{rp.title}</div>
+                  {rp.meta_description && (
+                    <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {rp.meta_description}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <style>{`
-        .grove-prose { font-size: 17px; line-height: 1.75; color: var(--ink); }
-        .grove-prose > * + * { margin-top: 1.1em; }
-        .grove-prose h1, .grove-prose h2, .grove-prose h3 {
-          font-weight: 600; line-height: 1.2; letter-spacing: -0.015em;
-          margin-top: 2em; margin-bottom: 0.5em;
+        /* Wide enough for grove's two-column grid: it collapses to one column
+           under 820px of VIEWPORT, so a 720px shell would have squeezed the
+           body into ~430px next to the rail on every desktop. */
+        .blog-article { max-width: 1060px; margin: 0 auto; padding: 60px 24px 80px; }
+
+        /* Grove's markup themes itself through --gv-* custom properties, with
+           its own neutrals only as fallbacks. Mapping them onto Oven's tokens
+           here is the supported way to make the TOC rail and CTA look native —
+           no overriding of grove's selectors, so upstream changes still land. */
+        .grove-article {
+          --gv-ink: var(--ink);
+          --gv-muted: var(--muted);
+          --gv-line: var(--line);
+          --gv-surface: var(--card);
+          --gv-accent: var(--blue);
+          --gv-radius: 14px;
+          --gv-label-font: var(--font-geist-mono), ui-monospace, monospace;
         }
-        .grove-prose h2 { font-size: 1.7em; padding-bottom: 0.25em; border-bottom: 1px solid var(--line); }
-        .grove-prose h3 { font-size: 1.3em; }
-        .grove-prose p { margin: 0 0 1em; }
-        .grove-prose a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-        .grove-prose ul, .grove-prose ol { padding-left: 1.6em; margin: 0.5em 0 1em; }
-        .grove-prose li { margin: 0.4em 0; }
-        .grove-prose blockquote {
+
+        /* Prose rules target .grv-body specifically — grove's html puts the TOC
+           aside and the CTA card OUTSIDE it, and styling those as body copy
+           (underlined links, bordered headings) is exactly how the sidebar
+           stops looking like a sidebar. */
+        .grove-article .grv-body { font-size: 17px; line-height: 1.75; color: var(--ink); }
+        .grove-article .grv-body > * + * { margin-top: 1.1em; }
+        .grove-article .grv-body h1,
+        .grove-article .grv-body h2,
+        .grove-article .grv-body h3 {
+          font-weight: 600; line-height: 1.2; letter-spacing: -0.015em;
+          margin-top: 2em; margin-bottom: 0.5em; scroll-margin-top: 90px;
+        }
+        .grove-article .grv-body h2 { font-size: 1.7em; padding-bottom: 0.25em; border-bottom: 1px solid var(--line); }
+        .grove-article .grv-body h3 { font-size: 1.3em; }
+        .grove-article .grv-body p { margin: 0 0 1em; }
+        .grove-article .grv-body a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+        .grove-article .grv-body ul, .grove-article .grv-body ol { padding-left: 1.6em; margin: 0.5em 0 1em; }
+        .grove-article .grv-body li { margin: 0.4em 0; }
+        .grove-article .grv-body blockquote {
           margin: 1.3em 0; padding: 0.5em 0 0.5em 1.1em;
           border-left: 3px solid var(--blue); background: rgba(0,0,0,0.02);
           color: var(--ink); font-style: italic; border-radius: 0 8px 8px 0;
         }
-        .grove-prose code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.9em; }
-        .grove-prose pre { background: #1a1a1a; color: #f6f4ee; padding: 16px; border-radius: 10px; overflow-x: auto; }
-        .grove-prose pre code { background: transparent; padding: 0; }
-        .grove-prose hr { border: none; border-top: 1px dashed var(--line); margin: 2.2em auto; width: 60%; }
-        .grove-prose table { width: 100%; border-collapse: collapse; margin: 1.4em 0; font-size: 15px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-        .grove-prose th, .grove-prose td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
-        .grove-prose th { background: rgba(0,0,0,0.03); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .grove-prose img { width: 100%; height: auto; border-radius: 14px; display: block; margin: 1.6em 0; }
+        .grove-article .grv-body code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.9em; }
+        .grove-article .grv-body pre { background: #1a1a1a; color: #f6f4ee; padding: 16px; border-radius: 10px; overflow-x: auto; }
+        .grove-article .grv-body pre code { background: transparent; padding: 0; }
+        .grove-article .grv-body hr { border: none; border-top: 1px dashed var(--line); margin: 2.2em auto; width: 60%; }
+        .grove-article .grv-body table { width: 100%; border-collapse: collapse; margin: 1.4em 0; font-size: 15px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+        .grove-article .grv-body th, .grove-article .grv-body td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
+        .grove-article .grv-body th { background: rgba(0,0,0,0.03); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .grove-article .grv-body img { width: 100%; height: auto; border-radius: 14px; display: block; margin: 1.6em 0; }
+
+        .blog-related { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+        /* Grove drops its rail at 820px of viewport, which assumes the html sits
+           in a full-width container. It doesn't here — this shell caps at 1060,
+           so between 820 and 1000 the 240px rail was leaving the body under
+           550px. The container width is the host page's knowledge, so the
+           threshold belongs here; grove's own chrome is left untouched. */
+        @media (max-width: 1000px) {
+          .grove-article .grv-wrap { grid-template-columns: minmax(0, 1fr) !important; }
+          .grove-article .grv-toc { display: none; }
+          /* Once the rail is gone the shell has to come back in with it —
+             otherwise the body inherits the full 1060 and the line length runs
+             to ~90 characters, which reads worse than the narrow column did. */
+          .blog-article { max-width: 780px; }
+        }
+        @media (max-width: 820px) {
+          .blog-related { grid-template-columns: 1fr; }
+        }
       `}</style>
 
       {/* First-party read beacon → grove's analytics (same event shape as the
@@ -156,3 +265,7 @@ window.addEventListener('scroll',function(){
 window.addEventListener('pagehide',function(){post({type:'exit',dwell_ms:dwell});});
 }catch(e){}})();`
 }
+
+// The CTA that used to be appended here now arrives inside grove's `html`
+// (branded with the customer's palette and pointing at domains.cta_url), so
+// there is deliberately no second "Try Oven AI" box in this file.
