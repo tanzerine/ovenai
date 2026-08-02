@@ -85,8 +85,32 @@ marked.setOptions({ gfm: true, breaks: false })
 const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''
 
+/**
+ * Grove ships the article typography it writes — same stylesheet embed.js
+ * links on every customer site, themeable through the --gv-* properties mapped
+ * below. This page used to maintain a hand-rolled fork of it, which is why the
+ * same article read differently here than on blog.oveners.com: the fork was
+ * missing the measure cap, the lead paragraph, the list marker colors and the
+ * image captions.
+ *
+ * Fetched server-side and inlined rather than <link>ed, for two reasons: this
+ * is React 18 / Next 14, where a <link> rendered in a page component isn't
+ * hoisted to <head> and flashes unstyled; and inlining removes a blocking
+ * cross-origin request on a page that has already paid for one round trip to
+ * grove. It shares the article's 5-minute ISR window, so grove retuning its
+ * typography reaches this page on its own.
+ */
+async function fetchArticleCss(): Promise<string> {
+  try {
+    const r = await fetch(`${GROVE_BASE}/article.css`, { next: { revalidate: 300 } })
+    return r.ok ? await r.text() : ''
+  } catch {
+    return ''
+  }
+}
+
 export default async function BlogArticle({ params }: { params: { slug: string } }) {
-  const article = await fetchArticle(params.slug)
+  const [article, articleCss] = await Promise.all([fetchArticle(params.slug), fetchArticleCss()])
   if (!article) notFound()
 
   // Prefer grove's rendered two-column HTML. The markdown fallback only runs if
@@ -99,6 +123,10 @@ export default async function BlogArticle({ params }: { params: { slug: string }
 
   return (
     <main className="blog-article">
+      {/* Grove's article typography, verbatim. Ahead of the page's own <style>
+          so the local rules below (anchor offset, rail breakpoint) win on ties. */}
+      {articleCss && <style dangerouslySetInnerHTML={{ __html: articleCss }} />}
+
       <Link href="/blog" style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'none' }}>
         ← All articles
       </Link>
@@ -173,42 +201,24 @@ export default async function BlogArticle({ params }: { params: { slug: string }
           --gv-muted: var(--muted);
           --gv-line: var(--line);
           --gv-surface: var(--card);
+          /* --ga-paper (block quotes, table headers, figure captions) chains off
+             this one. The article sits directly on --bg, so a raised block has
+             to be lighter than the page, not the same grey. */
+          --gv-raise: var(--card);
           --gv-accent: var(--blue);
+          /* Code blocks invert against the page; grove's default is its own dark
+             green, which would be the one un-Oven thing on the page. */
+          --gv-code-bg: var(--ink);
+          --gv-code-ink: #f6f7f9;
           --gv-radius: 14px;
           --gv-label-font: var(--font-geist-mono), ui-monospace, monospace;
         }
 
-        /* Prose rules target .grv-body specifically — grove's html puts the TOC
-           aside and the CTA card OUTSIDE it, and styling those as body copy
-           (underlined links, bordered headings) is exactly how the sidebar
-           stops looking like a sidebar. */
-        .grove-article .grv-body { font-size: 17px; line-height: 1.75; color: var(--ink); }
-        .grove-article .grv-body > * + * { margin-top: 1.1em; }
-        .grove-article .grv-body h1,
-        .grove-article .grv-body h2,
-        .grove-article .grv-body h3 {
-          font-weight: 600; line-height: 1.2; letter-spacing: -0.015em;
-          margin-top: 2em; margin-bottom: 0.5em; scroll-margin-top: 90px;
-        }
-        .grove-article .grv-body h2 { font-size: 1.7em; padding-bottom: 0.25em; border-bottom: 1px solid var(--line); }
-        .grove-article .grv-body h3 { font-size: 1.3em; }
-        .grove-article .grv-body p { margin: 0 0 1em; }
-        .grove-article .grv-body a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-        .grove-article .grv-body ul, .grove-article .grv-body ol { padding-left: 1.6em; margin: 0.5em 0 1em; }
-        .grove-article .grv-body li { margin: 0.4em 0; }
-        .grove-article .grv-body blockquote {
-          margin: 1.3em 0; padding: 0.5em 0 0.5em 1.1em;
-          border-left: 3px solid var(--blue); background: rgba(0,0,0,0.02);
-          color: var(--ink); font-style: italic; border-radius: 0 8px 8px 0;
-        }
-        .grove-article .grv-body code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.9em; }
-        .grove-article .grv-body pre { background: #1a1a1a; color: #f6f4ee; padding: 16px; border-radius: 10px; overflow-x: auto; }
-        .grove-article .grv-body pre code { background: transparent; padding: 0; }
-        .grove-article .grv-body hr { border: none; border-top: 1px dashed var(--line); margin: 2.2em auto; width: 60%; }
-        .grove-article .grv-body table { width: 100%; border-collapse: collapse; margin: 1.4em 0; font-size: 15px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-        .grove-article .grv-body th, .grove-article .grv-body td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
-        .grove-article .grv-body th { background: rgba(0,0,0,0.03); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .grove-article .grv-body img { width: 100%; height: auto; border-radius: 14px; display: block; margin: 1.6em 0; }
+        /* The prose itself is grove's stylesheet, inlined above — nothing about
+           the article body is restated here. The one addition is an anchor
+           offset, because the TOC rail links to in-page headings and grove has
+           no way to know how tall this site's sticky nav is. */
+        .grove-article .grv-body :is(h1, h2, h3, h4) { scroll-margin-top: 90px; }
 
         .blog-related { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
