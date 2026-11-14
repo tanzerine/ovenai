@@ -1,3 +1,5 @@
+import { BLOG_REDIRECTS } from './blog-redirects.mjs'
+
 // trygroveai.com is grove's live origin (grove-red.vercel.app is a stale
 // deployment alias that 404s, which silently emptied the blog list).
 const GROVE_BASE = 'https://trygroveai.com'
@@ -31,7 +33,9 @@ export async function fetchGrovePosts(): Promise<GrovePost[]> {
       if (page >= (j.pages ?? 1)) break
       page++
     }
-    return all
+    // Consolidated duplicates 301 to their winner (next.config.mjs), so they
+    // must not be linked from the index, the homepage or the sitemap.
+    return all.filter((p) => !(p.slug in BLOG_REDIRECTS))
   } catch {
     return []
   }

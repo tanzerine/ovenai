@@ -60,11 +60,12 @@ async function fetchArticle(slug: string): Promise<Article | null> {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const article = await fetchArticle(params.slug)
   if (!article) return {}
-  // blog.oveners.com is the canonical home of every article — grove serves it
-  // there with the full SEO stack (Article JSON-LD, internal links, sitemap,
-  // robots, llms.txt). This page stays up for site visitors but defers its
-  // search equity to the subdomain, so the two copies never compete on Google.
-  const url = `https://blog.oveners.com/${params.slug}`
+  // www.oveners.com/blog is the canonical home of every article. It used to
+  // defer to blog.oveners.com, which sent all 80 posts' search equity to a
+  // fresh zero-authority subdomain instead of the domain the product lives on.
+  // Grove's canonical_base points at this same base, so its mirror copies now
+  // declare this page canonical too and the two never compete.
+  const url = `https://www.oveners.com/blog/${params.slug}`
   return {
     title: article.meta_title || article.title,
     description: article.meta_description,
@@ -121,8 +122,41 @@ export default async function BlogArticle({ params }: { params: { slug: string }
     : `<div class="grv-body">${marked.parse(article.body_md ?? '', { async: false }) as string}</div>`
   const related = article.related ?? []
 
+  const canonical = `https://www.oveners.com/blog/${params.slug}`
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BlogPosting',
+        '@id': `${canonical}#article`,
+        headline: article.title,
+        description: article.meta_description,
+        datePublished: article.published_at,
+        mainEntityOfPage: canonical,
+        url: canonical,
+        image: article.cover_image_url ?? undefined,
+        author: { '@type': 'Organization', name: article.author || 'Oven AI', url: 'https://www.oveners.com' },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Oven AI',
+          url: 'https://www.oveners.com',
+          logo: { '@type': 'ImageObject', url: 'https://www.oveners.com/logo.png' },
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.oveners.com' },
+          { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://www.oveners.com/blog' },
+          { '@type': 'ListItem', position: 3, name: article.title, item: canonical },
+        ],
+      },
+    ],
+  }
+
   return (
     <main className="blog-article">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
       {/* Grove's article typography, verbatim. Ahead of the page's own <style>
           so the local rules below (anchor offset, rail breakpoint) win on ties. */}
       {articleCss && <style dangerouslySetInnerHTML={{ __html: articleCss }} />}

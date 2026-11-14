@@ -1,5 +1,14 @@
+import { BLOG_REDIRECTS } from './lib/blog-redirects.mjs'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return Object.entries(BLOG_REDIRECTS).map(([from, to]) => ({
+      source: `/blog/${from}`,
+      destination: `/blog/${to}`,
+      permanent: true,
+    }))
+  },
   images: {
     domains: ['replicate.delivery'],
   },
